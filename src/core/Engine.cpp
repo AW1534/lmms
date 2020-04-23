@@ -31,6 +31,7 @@
 #include "Lv2Manager.h"
 #include "PatternStore.h"
 #include "Plugin.h"
+#include "PluginFactory.h"
 #include "PresetPreviewPlayHandle.h"
 #include "ProjectJournal.h"
 #include "Song.h"
@@ -115,6 +116,8 @@ void Engine::destroy()
 	deleteHelper( &s_projectJournal );
 
 	deleteHelper( &s_song );
+
+	pluginFactory->deinitializePlugins();
 
 	delete ConfigManager::inst();
 

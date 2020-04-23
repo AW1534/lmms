@@ -90,6 +90,10 @@ public:
 	/// It can be retrieved by calling this function.
 	QString errorString(QString pluginName) const;
 
+	/// Deinitialize plugins by calling `lmms_plugin_deinit` on all loaded
+	/// plugins that define it.
+	void deinitializePlugins();
+
 public slots:
 	void discoverPlugins();
 
@@ -99,6 +103,10 @@ private:
 
 	QMap<QString, PluginInfoAndKey> m_pluginByExt;
 	QVector<std::string> m_garbage; //!< cleaned up at destruction
+
+	using InitHook = void (*)();
+	using DeinitHook = void (*)();
+	QVector<DeinitHook> m_deinitHooks;
 
 	QHash<QString, QString> m_errors;
 

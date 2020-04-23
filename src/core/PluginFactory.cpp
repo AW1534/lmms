@@ -145,6 +145,11 @@ QString PluginFactory::errorString(QString pluginName) const
 	return m_errors.value(pluginName, notfound);
 }
 
+void PluginFactory::deinitializePlugins()
+{
+	for (const auto hook : m_deinitHooks) { hook(); }
+}
+
 void PluginFactory::discoverPlugins()
 {
 	DescriptorMap descriptors;
@@ -166,7 +171,16 @@ void PluginFactory::discoverPlugins()
 	// all libraries twice we ensure that libZynAddSubFxCore is found.
 	for (const QFileInfo& file : files)
 	{
-		QLibrary(file.absoluteFilePath()).load();
+		QLibrary library(file.absoluteFilePath());
+		library.load();
+
+		if (const auto pluginInit = reinterpret_cast<InitHook>(library.resolve("lmms_plugin_init"))) {
+			pluginInit();
+		}
+
+		if (const auto pluginDeinit = reinterpret_cast<DeinitHook>(library.resolve("lmms_plugin_deinit"))) {
+			m_deinitHooks.push_back(pluginDeinit);
+		}
 	}
 
 	for (const QFileInfo& file : files)
