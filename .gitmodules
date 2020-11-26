@@ -49,3 +49,6 @@
 [submodule "plugins/LadspaEffect/cmt/cmt"]
 	path = plugins/LadspaEffect/cmt/cmt
 	url = https://github.com/lmms/cmt
+[submodule "plugins/Vst3Base/vst3sdk/pluginterfaces"]
+	path = plugins/Vst3Base/vst3sdk/pluginterfaces
+	url = https://github.com/steinbergmedia/vst3_pluginterfaces
