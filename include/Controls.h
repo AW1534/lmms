@@ -30,6 +30,7 @@
 // headers only required for covariance
 #include "AutomatableModel.h"
 #include "ComboBoxModel.h"
+#include "lmms_export.h"
 
 
 class QString;
@@ -56,7 +57,7 @@ class LedCheckBox;
 		(justification: setting the wrong typed model to a widget will cause
 		hard-to-find runtime errors)
 */
-class Control
+class LMMS_EXPORT Control
 {
 public:
 	virtual QWidget* topWidget() = 0;
@@ -70,7 +71,7 @@ public:
 };
 
 
-class KnobControl : public Control
+class LMMS_EXPORT KnobControl : public Control
 {
 	Knob* m_knob;
 
@@ -87,7 +88,7 @@ public:
 };
 
 
-class ComboControl : public Control
+class LMMS_EXPORT ComboControl : public Control
 {
 	QWidget* m_widget;
 	ComboBox* m_combo;
@@ -106,7 +107,7 @@ public:
 };
 
 
-class LcdControl : public Control
+class LMMS_EXPORT LcdControl : public Control
 {
 	class LcdSpinBox* m_lcd;
 
@@ -123,7 +124,7 @@ public:
 };
 
 
-class CheckControl : public Control
+class LMMS_EXPORT CheckControl : public Control
 {
 	QWidget* m_widget;
 	LedCheckBox* m_checkBox;

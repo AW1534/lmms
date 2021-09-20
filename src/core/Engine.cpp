@@ -117,7 +117,7 @@ void Engine::destroy()
 
 	deleteHelper( &s_song );
 
-	pluginFactory->deinitializePlugins();
+	getPluginFactory()->deinitializePlugins();
 
 	delete ConfigManager::inst();
 

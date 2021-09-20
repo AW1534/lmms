@@ -76,6 +76,9 @@
 #include <QLayout>
 #include <QMultiMap>
 #include <QStyle>
+#include <QWidget>
+
+#include "lmms_export.h"
 
 class QLayoutItem;
 class QRect;
@@ -86,6 +89,24 @@ class QLineEdit;
 namespace lmms::gui
 {
 
+class LMMS_EXPORT ControlFilterWidget : public QWidget
+{
+	Q_OBJECT
+
+public:
+	ControlFilterWidget(QWidget* parent = nullptr);
+
+	//! remove focus from QLineEdit search bar
+	//! this may be useful if the mouse is outside the layout
+	void removeFocusFromSearchBar();
+
+signals:
+	void filterChanged(const QString& filter);
+
+private:
+	class QLineEdit* m_searchBar;
+};
+
 /**
 	Layout for controls (models)
 
@@ -94,12 +115,12 @@ namespace lmms::gui
 	Features a search bar, as well as looking up widgets with string keys
 	Keys have to be provided in the widgets' objectNames
 */
-class ControlLayout : public QLayout
+class LMMS_EXPORT ControlLayout : public QLayout
 {
 	Q_OBJECT
 
 public:
-	explicit ControlLayout(QWidget *parent,
+	explicit ControlLayout(QWidget *parent = nullptr,
 		int margin = -1, int hSpacing = -1, int vSpacing = -1);
 	~ControlLayout() override;
 
@@ -116,12 +137,9 @@ public:
 	void setGeometry(const QRect &rect) override;
 	QSize sizeHint() const override;
 	QLayoutItem *takeAt(int index) override;
-	//! remove focus from QLineEdit search bar
-	//! this may be useful if the mouse is outside the layout
-	void removeFocusFromSearchBar();
 
-private slots:
-	void onTextChanged(const QString&);
+public slots:
+	void setFilterString(const QString& filter);
 
 private:
 	int doLayout(const QRect &rect, bool testOnly) const;
@@ -134,9 +152,7 @@ private:
 	// relevant dimension is width, as later, heightForWidth() will be called
 	// 400 looks good and is ~4 knobs in a row
 	constexpr const static int m_minWidth = 400;
-	QLineEdit* m_searchBar;
-	//! name of search bar, must be ASCII sorted before any alpha numerics
-	static constexpr const char* s_searchBarName = "!!searchBar!!";
+	QString m_filterString;
 };
 
 } // namespace lmms::gui

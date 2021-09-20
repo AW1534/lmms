@@ -25,6 +25,8 @@
 #include "LinkedModelGroupViews.h"
 
 #include <QPushButton>
+#include <QVBoxLayout>
+
 #include "Controls.h"
 #include "ControlLayout.h"
 #include "LinkedModelGroups.h"
@@ -43,13 +45,20 @@ LinkedModelGroupView::LinkedModelGroupView(QWidget* parent,
 	QWidget(parent),
 	m_model(model),
 	m_colNum(colNum),
-	m_layout(new ControlLayout(this))
+	m_filter{new ControlFilterWidget{}},
+	m_layout(new ControlLayout())
 {
 	// This is required to remove the focus of the line edit
 	// when e.g. another spin box is being clicked.
 	// Removing the focus is wanted because in many cases, the user wants to
 	// quickly play notes on the virtual keyboard.
 	setFocusPolicy( Qt::StrongFocus );
+	connect(m_filter, &ControlFilterWidget::filterChanged, m_layout, &ControlLayout::setFilterString);
+	const auto layout = new QVBoxLayout{this};
+	layout->addWidget(m_filter);
+	const auto controlContainer = new QWidget{};
+	controlContainer->setLayout(m_layout);
+	layout->addWidget(controlContainer);
 }
 
 
@@ -152,7 +161,7 @@ void LinkedModelGroupView::removeControl(const QString& key)
 
 void LinkedModelGroupView::removeFocusFromSearchBar()
 {
-	m_layout->removeFocusFromSearchBar();
+	m_filter->removeFocusFromSearchBar();
 }
 
 

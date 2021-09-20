@@ -90,6 +90,7 @@ private:
 
 	//! column number in surrounding grid in LinkedModelGroupsView
 	std::size_t m_colNum;
+	class ControlFilterWidget* m_filter;
 	class ControlLayout* m_layout;
 	std::map<std::string, std::unique_ptr<class Control>> m_widgets;
 };
