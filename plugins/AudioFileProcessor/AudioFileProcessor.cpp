@@ -123,7 +123,7 @@ void AudioFileProcessor::playNote( NotePlayHandle * _n,
 
 	if( !_n->m_pluginData )
 	{
-		if (m_stutterModel.value() == true && m_nextPlayStartPoint >= m_sample.endFrame())
+		if (m_stutterModel.value() == true && m_nextPlayStartPoint >= static_cast<std::size_t>(m_sample.endFrame()))
 		{
 			// Restart playing the note if in stutter mode, not in loop mode,
 			// and we're at the end of the sample.
@@ -144,9 +144,9 @@ void AudioFileProcessor::playNote( NotePlayHandle * _n,
 				srcmode = SRC_SINC_MEDIUM_QUALITY;
 				break;
 		}
-		_n->m_pluginData = new Sample::PlaybackState(_n->hasDetuningInfo(), srcmode);
-		static_cast<Sample::PlaybackState*>(_n->m_pluginData)->setFrameIndex(m_nextPlayStartPoint);
-		static_cast<Sample::PlaybackState*>(_n->m_pluginData)->setBackwards(m_nextPlayBackwards);
+		_n->m_pluginData = new Sample::PlaybackState(srcmode);
+		static_cast<Sample::PlaybackState*>(_n->m_pluginData)->frameIndex = m_nextPlayStartPoint;
+		static_cast<Sample::PlaybackState*>(_n->m_pluginData)->backwards = m_nextPlayBackwards;
 
 // debug code
 /*		qDebug( "frames %d", m_sample->frames() );
@@ -162,7 +162,7 @@ void AudioFileProcessor::playNote( NotePlayHandle * _n,
 						static_cast<Sample::Loop>(m_loopModel.value())))
 		{
 			applyRelease( _working_buffer, _n );
-			emit isPlaying(static_cast<Sample::PlaybackState*>(_n->m_pluginData)->frameIndex());
+			emit isPlaying(static_cast<Sample::PlaybackState*>(_n->m_pluginData)->frameIndex);
 		}
 		else
 		{
@@ -176,8 +176,8 @@ void AudioFileProcessor::playNote( NotePlayHandle * _n,
 	}
 	if( m_stutterModel.value() == true )
 	{
-		m_nextPlayStartPoint = static_cast<Sample::PlaybackState*>(_n->m_pluginData)->frameIndex();
-		m_nextPlayBackwards = static_cast<Sample::PlaybackState*>(_n->m_pluginData)->backwards();
+		m_nextPlayStartPoint = static_cast<Sample::PlaybackState*>(_n->m_pluginData)->frameIndex;
+		m_nextPlayBackwards = static_cast<Sample::PlaybackState*>(_n->m_pluginData)->backwards;
 	}
 }
 
@@ -288,7 +288,7 @@ auto AudioFileProcessor::beatLen(NotePlayHandle* note) const -> f_cnt_t
 		* Engine::audioEngine()->outputSampleRate()
 		/ Engine::audioEngine()->baseSampleRate();
 
-	const auto startFrame = m_nextPlayStartPoint >= m_sample.endFrame()
+	const auto startFrame = m_nextPlayStartPoint >= static_cast<std::size_t>(m_sample.endFrame())
 		? m_sample.startFrame()
 		: m_nextPlayStartPoint;
 	const auto duration = m_sample.endFrame() - startFrame;
