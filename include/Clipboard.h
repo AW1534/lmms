@@ -40,19 +40,13 @@ const QStringList presetExtensions{"xpf", "xml", "xiz", "lv2"};
 const QStringList soundFontExtensions{"sf2", "sf3"};
 const QStringList patchExtensions{"pat"};
 const QStringList midiExtensions{"mid", "midi", "rmi"};
-const QStringList vstPluginExtensions{"dll"
+const QStringList vstPluginExtensions{"dll"};
 #ifdef LMMS_BUILD_LINUX
-	,
-	"so"};
-#else
-};
+const QStringList vstPluginExtensions{"dll", "so"};
 #endif
-const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw"
+const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw"};
 #ifdef LMMS_HAVE_SNDFILE_MP3
-	,
-	"mp3"};
-#else
-};
+	const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw", "mp3"};
 #endif
 
 enum class MimeType
