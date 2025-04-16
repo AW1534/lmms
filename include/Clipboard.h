@@ -35,7 +35,27 @@ class QMimeData;
 namespace lmms::Clipboard
 {
 
-	enum class MimeType
+const QStringList projectExtensions{"mmp", "mpt", "mmpz"};
+const QStringList presetExtensions{"xpf", "xml", "xiz", "lv2"};
+const QStringList soundFontExtensions{"sf2", "sf3"};
+const QStringList patchExtensions{"pat"};
+const QStringList midiExtensions{"mid", "midi", "rmi"};
+const QStringList vstPluginExtensions{"dll"
+#ifdef LMMS_BUILD_LINUX
+	,
+	"so"};
+#else
+};
+#endif
+const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw"
+#ifdef LMMS_HAVE_SNDFILE_MP3
+	,
+	"mp3"};
+#else
+};
+#endif
+
+enum class MimeType
 	{
 		StringPair,
 		Default
