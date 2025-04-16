@@ -127,7 +127,6 @@ void SampleClipView::dragEnterEvent(QDragEnterEvent* event)
 
 void SampleClipView::dropEvent( QDropEvent * _de )
 {
-
 	const QList<QUrl> urls = _de->mimeData()->urls();
 	if (!urls.isEmpty())
 	{

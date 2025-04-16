@@ -24,15 +24,16 @@
  *
  */
 
-#include "StringPairDrag.h"
 
-#include <QDragEnterEvent>
-#include <QFileInfo>
 #include <QMimeData>
+#include <QDragEnterEvent>
 
-#include "Clipboard.h"
+
+#include "StringPairDrag.h"
 #include "GuiApplication.h"
 #include "MainWindow.h"
+#include "Clipboard.h"
+
 
 namespace lmms::gui
 {
@@ -79,46 +80,28 @@ StringPairDrag::~StringPairDrag()
 
 
 
-bool StringPairDrag::processDragEnterEvent(QDragEnterEvent* _dee, const QString& _allowed_keys_or_exts)
+bool StringPairDrag::processDragEnterEvent( QDragEnterEvent * _dee,
+						const QString & _allowed_keys )
 {
+	// For mimeType() and MimeType enum class
 	using namespace Clipboard;
 
-	// Check for LMMS internal drag format
-	const QMimeData* mime = _dee->mimeData();
-	if (mime->hasFormat(mimeType(MimeType::StringPair)))
+	if( !_dee->mimeData()->hasFormat( mimeType( MimeType::StringPair ) ) )
 	{
-		QString txt = mime->data(mimeType(MimeType::StringPair));
-		QString key = txt.section(':', 0, 0);
-
-		if (_allowed_keys_or_exts.split(',').contains(key))
-		{
-			_dee->acceptProposedAction();
-			return true;
-		}
+		return( false );
 	}
-
-	// Check for external file drops
-	if (mime->hasUrls())
+	QString txt = _dee->mimeData()->data( mimeType( MimeType::StringPair ) );
+	if( _allowed_keys.split( ',' ).contains( txt.section( ':', 0, 0 ) ) )
 	{
-		QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString filePath = urls.first().toLocalFile();
-			QFileInfo fi(filePath);
-			QString ext = fi.suffix().toLower();
-
-			// Match extensions against allowed list
-			if (_allowed_keys_or_exts.split(',').contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return true;
-			}
-		}
+		_dee->acceptProposedAction();
+		return( true );
 	}
-
 	_dee->ignore();
-	return false;
+	return( false );
 }
+
+
+
 
 QString StringPairDrag::decodeKey( QDropEvent * _de )
 {
