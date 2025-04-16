@@ -163,7 +163,12 @@ public slots:
 	/// \brief stopRubberBand
 	/// Removes the rubber band from display when finished with.
 	void stopRubberBand();
-
+	void handleInstrumentDrop(QString filePath);
+	void handleAudioDrop(QString filePath);
+	void handlePresetDrop(QString filePath);
+	void handleMidiDrop(QString filePath);
+	void handleProjectDrop(QString filePath);
+	void handleTrackDrop(QString filePath);
 
 protected:
 	static const int DEFAULT_PIXELS_PER_BAR = 128;
