@@ -202,7 +202,7 @@ void AudioFileProcessorView::dropEvent(QDropEvent* de)
 		QString filePath = urls.first().toLocalFile();
 		QString ext = QFileInfo(filePath).suffix().toLower();
 
-		if (ext == "wav" || ext == "flac" || ext == "mp3" || ext == "ogg")
+		if (Clipboard::audioExtensions.contains(ext))
 		{
 			castModel<AudioFileProcessor>()->setAudioFile(filePath);
 		}
