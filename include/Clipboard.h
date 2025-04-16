@@ -25,8 +25,10 @@
 #ifndef LMMS_CLIPBOARD_H
 #define LMMS_CLIPBOARD_H
 
+#include <lmmsconfig.h>
 #include <QDomElement>
 #include <QMap>
+
 
 #include "lmms_export.h"
 
