@@ -46,9 +46,10 @@ const QStringList vstPluginExtensions{"dll"};
 const QStringList vstPluginExtensions{"dll", "so"};
 #endif
 
-const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw"};
 #ifdef LMMS_HAVE_SNDFILE_MP3
-	const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw", "mp3"};
+const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw", "mp3"};
+#else
+const QStringList audioExtensions{"wav", "ogg", "ds", "flac", "spx", "voc", "aif", "aiff", "au", "raw"};
 #endif
 
 enum class MimeType
