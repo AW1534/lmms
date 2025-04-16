@@ -408,50 +408,6 @@ void TrackContainerView::stopRubberBand()
 }
 
 
-void TrackContainerView::handleInstrumentDrop(QString filePath)
-{
-	auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
-	auto ilt = new InstrumentLoaderThread(this, it, filePath); // TODO: this is a memory leak (according to CLion)
-	ilt->start();
-	// it->toggledInstrumentTrackButton(true);
-}
-
-void TrackContainerView::handleAudioDrop(QString filePath) // TODO: there must be a better name for this
-{
-	auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
-	PluginFactory::PluginInfoAndKey piakn =
-		getPluginFactory()->pluginSupportingExtension(FileItem::extension(filePath));
-	Instrument * i = it->loadInstrument(piakn.info.name(), &piakn.key);
-	i->loadFile( filePath );
-	// it->toggledInstrumentTrackButton(true);
-}
-
-void TrackContainerView::handlePresetDrop(QString filePath)
-{
-	DataFile dataFile(filePath);
-	auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
-	it->loadPreset(dataFile.content().toElement());
-	// it->toggledInstrumentTrackButton(true);
-}
-
-void TrackContainerView::handleMidiDrop(QString filePath)
-{
-	ImportFilter::import(filePath, m_tc);
-}
-
-void TrackContainerView::handleProjectDrop(QString filePath)
-{
-	if (getGUI()->mainWindow()->mayChangeProject(true) )
-	{
-		Engine::getSong()->loadProject(filePath);
-	}
-}
-
-void TrackContainerView::handleTrackDrop(QString filePath)
-{
-	DataFile dataFile(filePath.toUtf8());
-	Track::create(dataFile.content().firstChild().toElement(), m_tc);
-}
 
 
 void TrackContainerView::dropEvent( QDropEvent * _de )
@@ -470,7 +426,10 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 
 	if (type == "instrument")
 	{
-		handleInstrumentDrop(value);
+		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
+		auto ilt = new InstrumentLoaderThread(this, it, value); // TODO: this is a memory leak (according to CLion)
+		ilt->start();
+		// it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
 	else if(
@@ -479,29 +438,42 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		|| type == "soundfontfile" || type == "vstpluginfile"
 		|| type == "patchfile" )
 	{
-		handleAudioDrop(value);
+		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
+		PluginFactory::PluginInfoAndKey piakn =
+			getPluginFactory()->pluginSupportingExtension(FileItem::extension(value));
+		Instrument * i = it->loadInstrument(piakn.info.name(), &piakn.key);
+		i->loadFile( value );
+		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
 	else if( Clipboard::presetExtensions.contains(ext) || type == "presetfile")
 	{
-		handlePresetDrop(value);
+		DataFile dataFile( value );
+		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
+		it->loadPreset(dataFile.content().toElement());
+
+		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
 	else if(Clipboard::midiExtensions.contains(ext) || type == "importedproject")
 	{
-		handleMidiDrop(value);
+		ImportFilter::import( value, m_tc );
 		_de->accept();
 	}
 
 	else if(Clipboard::projectExtensions.contains(ext) || type == "projectfile")
 	{
-		handleProjectDrop(value);
+		if (getGUI()->mainWindow()->mayChangeProject(true) )
+		{
+			Engine::getSong()->loadProject( value );
+		}
 		_de->accept();
 	}
 
 	else if( type.left( 6 ) == "track_" )
 	{
-		handleTrackDrop(value);
+		DataFile dataFile( value.toUtf8() );
+		Track::create( dataFile.content().firstChild().toElement(), m_tc );
 		_de->accept();
 	}
 }
