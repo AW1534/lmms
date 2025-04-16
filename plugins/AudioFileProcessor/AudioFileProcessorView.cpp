@@ -149,21 +149,22 @@ AudioFileProcessorView::AudioFileProcessorView(Instrument* instrument,
 
 void AudioFileProcessorView::dragEnterEvent(QDragEnterEvent* dee)
 {
-	const QMimeData* mime = dee->mimeData();
 
 	QString txt = dee->mimeData()->data(Clipboard::mimeType(Clipboard::MimeType::StringPair));
 	if (txt.section(':', 0, 0) == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
 	{
 		dee->acceptProposedAction();
+		return;
 	}
 
+	const QMimeData* mime = dee->mimeData();
 	if (mime->hasUrls())
 	{
 		const QList<QUrl> urls = mime->urls();
 		if (!urls.isEmpty())
 		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
+			QString filePath = urls.first().toLocalFile();
+			QString ext = QFileInfo(filePath).suffix().toLower();
 
 			if (Clipboard::audioExtensions.contains(ext))
 			{
@@ -172,6 +173,7 @@ void AudioFileProcessorView::dragEnterEvent(QDragEnterEvent* dee)
 			}
 		}
 	}
+
 	dee->ignore();
 }
 
