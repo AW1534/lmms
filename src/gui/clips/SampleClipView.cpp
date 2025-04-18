@@ -21,22 +21,24 @@
  * Boston, MA 02110-1301 USA.
  *
  */
- 
+
 #include "SampleClipView.h"
 
+#include <Clipboard.h>
 #include <QApplication>
 #include <QMenu>
 #include <QPainter>
 
-#include "GuiApplication.h"
 #include "AutomationEditor.h"
-#include "embed.h"
+#include "GuiApplication.h"
 #include "PathUtil.h"
 #include "SampleClip.h"
 #include "SampleLoader.h"
 #include "SampleThumbnail.h"
 #include "Song.h"
 #include "StringPairDrag.h"
+#include "TrackView.h"
+#include "embed.h"
 
 namespace lmms::gui
 {
@@ -45,7 +47,8 @@ namespace lmms::gui
 SampleClipView::SampleClipView( SampleClip * _clip, TrackView * _tv ) :
 	ClipView( _clip, _tv ),
 	m_clip( _clip ),
-	m_paintPixmap()
+	m_paintPixmap(),
+	m_paintPixmapXPosition(0)
 {
 	// update UI and tooltip
 	updateSample();
@@ -102,24 +105,39 @@ void SampleClipView::constructContextMenu(QMenu* cm)
 
 
 
-
-void SampleClipView::dragEnterEvent( QDragEnterEvent * _dee )
+void SampleClipView::dragEnterEvent(QDragEnterEvent* event)
 {
-	if( StringPairDrag::processDragEnterEvent( _dee,
-					"samplefile,sampledata" ) == false )
+	const QMimeData* mime = event->mimeData();
+
+	if (mime->hasUrls())
 	{
-		ClipView::dragEnterEvent( _dee );
+		const QList<QUrl> urls = mime->urls();
+		if (!urls.isEmpty())
+		{
+			QString path = urls.first().toLocalFile();
+			QString ext = QFileInfo(path).suffix().toLower();
+
+			if (Clipboard::audioExtensions.contains(ext))
+			{
+				event->acceptProposedAction();
+				return;
+			}
+		}
 	}
+	event->ignore();
 }
-
-
-
-
-
 
 void SampleClipView::dropEvent( QDropEvent * _de )
 {
-	if( StringPairDrag::decodeKey( _de ) == "samplefile" )
+	const QList<QUrl> urls = _de->mimeData()->urls();
+	if (!urls.isEmpty())
+	{
+		QString filePath = urls.first().toLocalFile();
+		QString ext = QFileInfo(filePath).suffix().toLower();
+		if (Clipboard::audioExtensions.contains(ext)) { m_clip->setSampleFile(filePath); }
+	}
+
+	if ( StringPairDrag::decodeKey( _de ) == "samplefile" )
 	{
 		m_clip->setSampleFile( StringPairDrag::decodeValue( _de ) );
 		_de->accept();
@@ -210,15 +228,22 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 
 	if( !needsUpdate() )
 	{
-		painter.drawPixmap( 0, 0, m_paintPixmap );
+		painter.drawPixmap(m_paintPixmapXPosition, 0, m_paintPixmap);
 		return;
 	}
 
 	setNeedsUpdate( false );
 
-	if (m_paintPixmap.isNull() || m_paintPixmap.size() != size())
+	const auto trackViewWidth = getTrackView()->rect().width();
+
+	// Use the clip's height to avoid artifacts when rendering while something else is overlaying the clip.
+	const auto viewPortRect = QRect(0, 0, trackViewWidth * 2, rect().height());
+
+	m_paintPixmapXPosition = std::max(0, pe->rect().x() - trackViewWidth);
+
+	if (m_paintPixmap.isNull() || m_paintPixmap.size() != viewPortRect.size())
 	{
-		m_paintPixmap = QPixmap(size());
+		m_paintPixmap = QPixmap(viewPortRect.size());
 	}
 
 	QPainter p( &m_paintPixmap );
@@ -274,12 +299,14 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 	float sampleLength = m_clip->sampleLength() * ppb / ticksPerBar;
 
 	const auto& sample = m_clip->m_sample;
+
+	const auto sampleRextX = static_cast<int>(offsetStart) - m_paintPixmapXPosition;
+
 	if (sample.sampleSize() > 0)
 	{
 		const auto param = SampleThumbnail::VisualizeParameters{
-			.sampleRect = QRect(offsetStart, spacing, sampleLength, height() - spacing),
-			.drawRect = QRect(0, spacing, width(), height() - spacing),
-			.viewportRect = pe->rect(),
+			.sampleRect = QRect(sampleRextX, spacing, sampleLength, height() - spacing),
+			.viewportRect = viewPortRect,
 			.amplification = sample.amplification(),
 			.reversed = sample.reversed()
 		};
@@ -295,12 +322,15 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 
 	// inner border
 	p.setPen( c.lighter( 135 ) );
-	p.drawRect( 1, 1, rect().right() - BORDER_WIDTH,
+	p.drawRect(
+		-m_paintPixmapXPosition + 1,
+		1,
+		rect().right() - BORDER_WIDTH,
 		rect().bottom() - BORDER_WIDTH );
 
 	// outer border
 	p.setPen( c.darker( 200 ) );
-	p.drawRect( 0, 0, rect().right(), rect().bottom() );
+	p.drawRect(-m_paintPixmapXPosition, 0, rect().right(), rect().bottom());
 
 	// draw the 'muted' pixmap only if the clip was manualy muted
 	if( m_clip->isMuted() )
@@ -332,7 +362,7 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 
 	p.end();
 
-	painter.drawPixmap( 0, 0, m_paintPixmap );
+	painter.drawPixmap(m_paintPixmapXPosition, 0, m_paintPixmap);
 }
 
 
