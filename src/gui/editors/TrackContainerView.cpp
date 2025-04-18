@@ -26,6 +26,7 @@
 
 #include <Clipboard.h>
 #include <QLayout>
+#include <QMessageBox>
 #include <QScrollBar>
 #include <QWheelEvent>
 
@@ -434,13 +435,14 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 	}
 	else if(
 		Clipboard::audioExtensions.contains(ext) || Clipboard::vstPluginExtensions.contains(ext)
-		|| Clipboard::patchExtensions.contains(ext) || type == "samplefile" || type == "pluginpresetfile"
+		|| Clipboard::patchExtensions.contains(ext) || Clipboard::soundFontExtensions.contains(ext) || type == "samplefile" || type == "pluginpresetfile"
 		|| type == "soundfontfile" || type == "vstpluginfile"
 		|| type == "patchfile" )
 	{
 		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
 		PluginFactory::PluginInfoAndKey piakn =
 			getPluginFactory()->pluginSupportingExtension(FileItem::extension(value));
+
 		Instrument * i = it->loadInstrument(piakn.info.name(), &piakn.key);
 		i->loadFile( value );
 		//it->toggledInstrumentTrackButton( true );
@@ -448,7 +450,15 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 	}
 	else if( Clipboard::presetExtensions.contains(ext) || type == "presetfile")
 	{
-		DataFile dataFile( value );
+		DataFile dataFile(value);
+		if (!dataFile.validate(ext))
+		{
+			QMessageBox::warning(0, tr ("Error"),
+				tr("%1 does not appear to be a valid %2 file")
+				.arg(value, ext),
+				QMessageBox::Ok, QMessageBox::NoButton);
+			return;
+		}
 		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
 		it->loadPreset(dataFile.content().toElement());
 
