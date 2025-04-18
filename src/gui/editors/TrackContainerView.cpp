@@ -434,7 +434,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 	}
 	else if(
 		Clipboard::audioExtensions.contains(ext) || Clipboard::vstPluginExtensions.contains(ext)
-		|| Clipboard::patchExtensions.contains(ext) || type == "samplefile" || type == "pluginpresetfile"
+		|| Clipboard::patchExtensions.contains(ext) || Clipboard::soundFontExtensions.contains(ext) || type == "samplefile" || type == "pluginpresetfile"
 		|| type == "soundfontfile" || type == "vstpluginfile"
 		|| type == "patchfile" )
 	{
