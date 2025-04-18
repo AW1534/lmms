@@ -121,6 +121,7 @@ Knob* SlicerTView::createStyledKnob()
 // Clear all notes
 void SlicerTView::clearSlices() {
 	m_slicerTParent->m_slicePoints.clear();
+	m_slicerTParent->m_slicePoints.push_back(0);
 	emit m_slicerTParent->dataChanged();
 }
 
