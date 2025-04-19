@@ -397,6 +397,8 @@ void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 			}
 		}
 	}
+
+	_dee->ignore();
 }
 
 
