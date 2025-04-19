@@ -370,12 +370,15 @@ void TrackContainerView::clearAllTracks()
 
 void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent( _dee,
+	if (StringPairDrag::processDragEnterEvent( _dee,
 		QString( "presetfile,pluginpresetfile,samplefile,instrument,"
 				"importedproject,soundfontfile,patchfile,vstpluginfile,projectfile,"
 				"track_%1,track_%2")
 			.arg(static_cast<int>(Track::Type::Instrument))
-			.arg(static_cast<int>(Track::Type::Sample)));
+			.arg(static_cast<int>(Track::Type::Sample))))
+	{
+		return;
+	}
 
 	const QMimeData* mime = _dee->mimeData();
 
@@ -397,6 +400,8 @@ void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 			}
 		}
 	}
+
+	_dee->ignore();
 }
 
 
