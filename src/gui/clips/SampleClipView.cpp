@@ -137,7 +137,7 @@ void SampleClipView::dropEvent( QDropEvent * _de )
 		if (Clipboard::audioExtensions.contains(ext)) { m_clip->setSampleFile(filePath); }
 	}
 
-	if ( StringPairDrag::decodeKey( _de ) == "samplefile" )
+	if (StringPairDrag::decodeKey( _de ) == "samplefile")
 	{
 		m_clip->setSampleFile( StringPairDrag::decodeValue( _de ) );
 		_de->accept();
