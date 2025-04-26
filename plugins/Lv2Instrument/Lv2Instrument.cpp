@@ -260,7 +260,7 @@ void Lv2InsView::dragEnterEvent(QDragEnterEvent *_dee)
 	if (mime->hasUrls())
 	{
 		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
+		if (urls.isEmpty() == false)
 		{
 			QString path = urls.first().toLocalFile();
 			QString ext = QFileInfo(path).suffix().toLower();
