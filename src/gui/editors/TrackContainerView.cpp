@@ -476,7 +476,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		_de->accept();
 	}
 
-	else if(Clipboard::projectExtensions.contains(ext) || type == "projectfile")
+	else if (Clipboard::projectExtensions.contains(ext) || type == "projectfile")
 	{
 		if (getGUI()->mainWindow()->mayChangeProject(true) )
 		{
