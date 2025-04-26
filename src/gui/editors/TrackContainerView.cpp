@@ -470,7 +470,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if(Clipboard::midiExtensions.contains(ext) || type == "importedproject")
+	else if (Clipboard::midiExtensions.contains(ext) || type == "importedproject")
 	{
 		ImportFilter::import( value, m_tc );
 		_de->accept();
