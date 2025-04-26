@@ -284,7 +284,7 @@ void Lv2InsView::dropEvent(QDropEvent *_de)
 	if (mime->hasUrls())
 	{
 		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
+		if (urls.isEmpty() == false)
 		{
 			QString filePath = urls.first().toLocalFile();
 			QString ext = QFileInfo(filePath).suffix().toLower();
