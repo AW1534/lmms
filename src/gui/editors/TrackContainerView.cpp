@@ -478,7 +478,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 
 	else if (Clipboard::projectExtensions.contains(ext) || type == "projectfile")
 	{
-		if (getGUI()->mainWindow()->mayChangeProject(true) )
+		if (getGUI()->mainWindow()->mayChangeProject(true))
 		{
 			Engine::getSong()->loadProject( value );
 		}
