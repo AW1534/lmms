@@ -453,7 +453,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if( Clipboard::presetExtensions.contains(ext) || type == "presetfile")
+	else if(Clipboard::presetExtensions.contains(ext) || type == "presetfile")
 	{
 		DataFile dataFile(value);
 		if (!dataFile.validate(ext))
