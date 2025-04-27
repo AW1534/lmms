@@ -756,21 +756,13 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	}
 
 	QString autoAssignDevice = ConfigManager::inst()->value("midi", "midiautoassign");
-	int current = m_assignableMidiDevices->findText(autoAssignDevice);
+	int current = MidiAlsaSeq::findDeviceIndex(readablePorts, autoAssignDevice);
 	if (current >= 0)
 	{
-		m_assignableMidiDevices->setCurrentIndex(current);
+		m_assignableMidiDevices->setCurrentIndex(current+1);
 	} else
 	{
-		int frpi = readablePorts.indexOf(autoAssignDevice);
-		if (frpi != -1)
-		{
-			m_assignableMidiDevices->setCurrentIndex(frpi+1);
-		} else
-		{
-			m_assignableMidiDevices->addItem(QIcon(embed::getIconPixmap("error")), autoAssignDevice);
-		}
-
+		m_assignableMidiDevices->addItem(QIcon(embed::getIconPixmap("error")), autoAssignDevice);
 	}
 
 	// MIDI Recording tab
