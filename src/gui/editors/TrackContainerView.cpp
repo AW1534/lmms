@@ -453,7 +453,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if( Clipboard::presetExtensions.contains(ext) || type == "presetfile")
+	else if(Clipboard::presetExtensions.contains(ext) || type == "presetfile")
 	{
 		DataFile dataFile(value);
 		if (!dataFile.validate(ext))
@@ -470,15 +470,15 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if(Clipboard::midiExtensions.contains(ext) || type == "importedproject")
+	else if (Clipboard::midiExtensions.contains(ext) || type == "importedproject")
 	{
 		ImportFilter::import( value, m_tc );
 		_de->accept();
 	}
 
-	else if(Clipboard::projectExtensions.contains(ext) || type == "projectfile")
+	else if (Clipboard::projectExtensions.contains(ext) || type == "projectfile")
 	{
-		if (getGUI()->mainWindow()->mayChangeProject(true) )
+		if (getGUI()->mainWindow()->mayChangeProject(true))
 		{
 			Engine::getSong()->loadProject( value );
 		}
