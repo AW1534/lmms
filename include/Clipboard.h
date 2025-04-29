@@ -25,13 +25,16 @@
 #ifndef LMMS_CLIPBOARD_H
 #define LMMS_CLIPBOARD_H
 
-#include <lmmsconfig.h>
 #include <QDomElement>
 #include <QMap>
-
+#include <QObject>
+#include <lmmsconfig.h>
 
 #include "lmms_export.h"
 
+namespace lmms::gui {
+class FileItem;
+}
 class QMimeData;
 
 namespace lmms::Clipboard
@@ -72,6 +75,8 @@ enum class MimeType
 	void copyStringPair( const QString & key, const QString & value );
 	QString decodeKey( const QMimeData * mimeData );
 	QString decodeValue( const QMimeData * mimeData );
+
+	void startFileDrag(gui::FileItem* file, QObject* qo);
 
 	inline const char * mimeType( MimeType type )
 	{

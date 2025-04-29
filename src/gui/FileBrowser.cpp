@@ -25,6 +25,7 @@
 
 #include "FileBrowser.h"
 
+#include <Clipboard.h>
 #include <PathUtil.h>
 #include <QApplication>
 #include <QDirIterator>
@@ -877,62 +878,8 @@ void FileBrowserTreeWidget::mouseMoveEvent(QMouseEvent* me)
 		mouseReleaseEvent(nullptr);
 
 		auto f = dynamic_cast<FileItem*>(itemAt(m_pressPos));
-		if (f == nullptr) return;
 
-		QDrag* drag = new QDrag(this);
-		QMimeData* mimeData = new QMimeData();
-
-		QString internalType;
-		QString iconName;
-
-		switch (f->type())
-		{
-		case FileItem::FileType::Preset:
-			internalType = f->handling() == FileItem::FileHandling::LoadAsPreset ? "presetfile" : "pluginpresetfile";
-			iconName = "preset_file";
-			break;
-		case FileItem::FileType::Sample:
-			internalType = "samplefile";
-			iconName = "sample_file";
-			break;
-		case FileItem::FileType::SoundFont:
-			internalType = "soundfontfile";
-			iconName = "soundfont_file";
-			break;
-		case FileItem::FileType::Patch:
-			internalType = "patchfile";
-			iconName = "sample_file";
-			break;
-		case FileItem::FileType::VstPlugin:
-			internalType = "vstpluginfile";
-			iconName = "vst_plugin_file";
-			break;
-		case FileItem::FileType::Midi:
-			internalType = "importedproject";
-			iconName = "midi_file";
-			break;
-		case FileItem::FileType::Project:
-			internalType = "projectfile";
-			iconName = "project_file";
-			break;
-		default:
-			return;
-		}
-
-		QString filePath = QUrl::fromLocalFile(f->fullName()).toString();
-
-		// Internal LMMS type
-		mimeData->setData("application/x-lmms-type", internalType.toUtf8());
-		mimeData->setData("application/x-lmms-path", f->fullName().toUtf8());
-
-		// For external applications
-		QList<QUrl> urls;
-		urls << QUrl::fromLocalFile(f->fullName());
-		mimeData->setUrls(urls); // This sets the "text/uri-list" MIME type
-
-		drag->setMimeData(mimeData);
-		drag->setPixmap(embed::getIconPixmap(iconName.toStdString()));
-		drag->exec(Qt::CopyAction);
+		Clipboard::startFileDrag(f, this);
 	}
 }
 
