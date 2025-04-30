@@ -878,7 +878,6 @@ void FileBrowserTreeWidget::mouseMoveEvent(QMouseEvent* me)
 		mouseReleaseEvent(nullptr);
 
 		auto f = dynamic_cast<FileItem*>(itemAt(m_pressPos));
-
 		Clipboard::startFileDrag(f, this);
 	}
 }
