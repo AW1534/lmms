@@ -145,46 +145,21 @@ void SlicerTView::openFiles()
 // all the drag stuff is copied from AudioFileProcessor
 void SlicerTView::dragEnterEvent(QDragEnterEvent* dee)
 {
-	const QMimeData* mime = dee->mimeData();
-
-	QString txt = dee->mimeData()->data(Clipboard::mimeType(Clipboard::MimeType::StringPair));
-	if (txt.section(':', 0, 0) == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
-	{
-		dee->acceptProposedAction();
-	}
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::audioExtensions.contains(ext))
-			{
-				dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-	dee->ignore();
+	StringPairDrag::processDragEnterEvent(dee, QString("samplefile,clip_%1").arg(static_cast<int>(Track::Type::Sample)));
 }
 
 void SlicerTView::dropEvent(QDropEvent* de)
 {
-	QString type = StringPairDrag::decodeKey(de);
-	QString value = StringPairDrag::decodeValue(de);
+	auto data = Clipboard::decodeMimeData(de->mimeData());
 
-	const QList<QUrl> urls = de->mimeData()->urls();
-	if (!urls.isEmpty())
+	QString type = data.first;
+	QString value = data.second;
+
+
+	if (type == "samplefile")
 	{
-		QString filePath = urls.first().toLocalFile();
-		QString ext = QFileInfo(filePath).suffix().toLower();
-
-		if (Clipboard::audioExtensions.contains(ext)) { m_slicerTParent->updateFile(filePath); }
+		m_slicerTParent->updateFile(value);
 	}
-
 	else if (type == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
 	{
 		DataFile dataFile(value.toUtf8());

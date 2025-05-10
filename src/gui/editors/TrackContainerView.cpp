@@ -28,7 +28,6 @@
 #include <QLayout>
 #include <QMessageBox>
 #include <QScrollBar>
-#include <QWheelEvent>
 
 #include "AudioEngine.h"
 #include "DataFile.h"
@@ -370,38 +369,12 @@ void TrackContainerView::clearAllTracks()
 
 void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	if (StringPairDrag::processDragEnterEvent( _dee,
+	StringPairDrag::processDragEnterEvent( _dee,
 		QString( "presetfile,pluginpresetfile,samplefile,instrument,"
 				"importedproject,soundfontfile,patchfile,vstpluginfile,projectfile,"
 				"track_%1,track_%2")
 			.arg(static_cast<int>(Track::Type::Instrument))
-			.arg(static_cast<int>(Track::Type::Sample))))
-	{
-		return;
-	}
-
-	const QMimeData* mime = _dee->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::audioExtensions.contains(ext) || Clipboard::soundFontExtensions.contains(ext)
-				|| Clipboard::patchExtensions.contains(ext) || Clipboard::midiExtensions.contains(ext)
-				|| Clipboard::projectExtensions.contains(ext) || Clipboard::vstPluginExtensions.contains(ext)
-				|| Clipboard::presetExtensions.contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-
-	_dee->ignore();
+			.arg(static_cast<int>(Track::Type::Sample)));
 }
 
 
@@ -418,17 +391,10 @@ void TrackContainerView::stopRubberBand()
 
 void TrackContainerView::dropEvent( QDropEvent * _de )
 {
-	const QList<QUrl> urls = _de->mimeData()->urls();
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
 
-	QString type = StringPairDrag::decodeKey( _de );
-	QString value = StringPairDrag::decodeValue( _de );
-	QString ext;
-
-	if (!urls.isEmpty())
-	{
-		value = urls.first().toLocalFile();
-		ext = QFileInfo(value).suffix().toLower();
-	}
+	QString type = data.first;
+	QString value = data.second;
 
 	if (type == "instrument")
 	{
@@ -439,8 +405,7 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		_de->accept();
 	}
 	else if(
-		Clipboard::audioExtensions.contains(ext) || Clipboard::vstPluginExtensions.contains(ext)
-		|| Clipboard::patchExtensions.contains(ext) || Clipboard::soundFontExtensions.contains(ext) || type == "samplefile" || type == "pluginpresetfile"
+		type == "samplefile" || type == "pluginpresetfile"
 		|| type == "soundfontfile" || type == "vstpluginfile"
 		|| type == "patchfile" )
 	{
@@ -453,8 +418,10 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if(Clipboard::presetExtensions.contains(ext) || type == "presetfile")
+	else if(type == "presetfile")
 	{
+		QString ext = QFileInfo(value).suffix().toLower();
+
 		DataFile dataFile(value);
 		if (!dataFile.validate(ext))
 		{
@@ -470,13 +437,13 @@ void TrackContainerView::dropEvent( QDropEvent * _de )
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if (Clipboard::midiExtensions.contains(ext) || type == "importedproject")
+	else if (type == "importedproject")
 	{
 		ImportFilter::import( value, m_tc );
 		_de->accept();
 	}
 
-	else if (Clipboard::projectExtensions.contains(ext) || type == "projectfile")
+	else if (type == "projectfile")
 	{
 		if (getGUI()->mainWindow()->mayChangeProject(true))
 		{

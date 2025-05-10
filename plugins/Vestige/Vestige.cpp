@@ -831,46 +831,26 @@ void VestigeInstrumentView::noteOffAll( void )
 
 
 
-void VestigeInstrumentView::dragEnterEvent( QDragEnterEvent * _dee )
+void VestigeInstrumentView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	const QMimeData* mime = _dee->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::vstPluginExtensions.contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-
-	_dee->ignore();
+	StringPairDrag::processDragEnterEvent(_dee, "vstpluginfile");
 }
 
 
 
 
-void VestigeInstrumentView::dropEvent( QDropEvent * _de )
+void VestigeInstrumentView::dropEvent(QDropEvent* _de)
 {
-	const QList<QUrl> urls = _de->mimeData()->urls();
-	if (!urls.isEmpty())
-	{
-		QString filePath = urls.first().toLocalFile();
-		QString ext = QFileInfo(filePath).suffix().toLower();
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
 
-		if (Clipboard::vstPluginExtensions.contains(ext))
-		{
-			m_vi->loadFile(filePath);
-			_de->accept();
-			return;
-		}
+	QString type = data.first;
+	QString value = data.second;
+
+	if (type == "vstpluginfile")
+	{
+		m_vi->loadFile(value);
+		_de->accept();
+		return;
 	}
 
 	_de->ignore();

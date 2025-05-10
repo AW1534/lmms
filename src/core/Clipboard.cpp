@@ -30,6 +30,7 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QUrl>
+#include <StringPairDrag.h>
 
 namespace lmms::Clipboard
 {
@@ -38,7 +39,6 @@ namespace lmms::Clipboard
 	{
 		return QApplication::clipboard()->mimeData( QClipboard::Clipboard );
 	}
-
 
 
 
@@ -94,6 +94,33 @@ namespace lmms::Clipboard
 		return( QString::fromUtf8( mimeData->data( mimeType( MimeType::StringPair ) ) ).section( ':', 1, -1 ) );
 	}
 
+	std::pair<QString, QString> decodeMimeData(const QMimeData* mimeData)
+	{
+		const QList<QUrl> urls = mimeData->urls();
+		QString type;
+		QString value;
+
+		if (hasFormat( MimeType::StringPair ))
+		{
+			QString type = decodeKey(mimeData);
+			QString value = decodeValue(mimeData);
+
+		}
+		if (!urls.isEmpty())
+		{
+			value = urls.first().toLocalFile();
+		}
+
+		if (isAudioFile(value))			 { type = "samplefile"; }
+		else if (isVstPluginFile(value)) { type = "vstpluginfile"; }
+		else if (isPresetFile(value))    { type = "presetfile"; }
+		else if (isMidiFile(value))      { type = "midifile"; }
+		else if (isProjectFile(value))   { type = "projectfile"; }
+		else if (isPatchFile(value))     { type = "patchfile"; }
+		else if (isSoundFontFile(value)) { type = "soundfontfile"; }
+
+		return {type, value};
+	}
 
 	void startFileDrag(gui::FileItem* f, QObject* qo)
 	{

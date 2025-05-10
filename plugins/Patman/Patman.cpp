@@ -567,27 +567,9 @@ void PatmanView::updateFilename()
 
 
 
-void PatmanView::dragEnterEvent( QDragEnterEvent * _dee )
+void PatmanView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	const QMimeData* mime = _dee->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (urls.isEmpty() == false)
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::audioExtensions.contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-
-	_dee->ignore();
+	StringPairDrag::processDragEnterEvent(_dee, "samplefile");
 }
 
 
@@ -595,18 +577,16 @@ void PatmanView::dragEnterEvent( QDragEnterEvent * _dee )
 
 void PatmanView::dropEvent( QDropEvent * _de )
 {
-	const QList<QUrl> urls = _de->mimeData()->urls();
-	if (!urls.isEmpty())
-	{
-		QString filePath = urls.first().toLocalFile();
-		QString ext = QFileInfo(filePath).suffix().toLower();
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
 
-		if (Clipboard::audioExtensions.contains(ext))
-		{
-			m_pi->setFile(filePath);
-			_de->accept();
-			return;
-		}
+	QString type = data.first;
+	QString value = data.second;
+
+	if (type == "samplefile")
+	{
+		m_pi->setFile(value);
+		_de->accept();
+		return;
 	}
 
 	_de->ignore();
