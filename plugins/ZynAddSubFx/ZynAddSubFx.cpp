@@ -567,27 +567,9 @@ ZynAddSubFxView::ZynAddSubFxView( Instrument * _instrument, QWidget * _parent ) 
 
 
 
-void ZynAddSubFxView::dragEnterEvent( QDragEnterEvent * _dee )
+void ZynAddSubFxView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	const QMimeData* mime = _dee->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::presetExtensions.contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-
-	_dee->ignore();
+	StringPairDrag::processDragEnterEvent(_dee, "pluginpresetfile,presetfile");
 }
 
 
@@ -595,17 +577,16 @@ void ZynAddSubFxView::dragEnterEvent( QDragEnterEvent * _dee )
 
 void ZynAddSubFxView::dropEvent( QDropEvent * _de )
 {
-	const QList<QUrl> urls = _de->mimeData()->urls();
-	if (!urls.isEmpty())
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
+
+	QString type = data.first;
+	QString value = data.second;
+
+	if (type == "pluginpresetfile")
 	{
-		QString filePath = urls.first().toLocalFile();
-		QString ext = QFileInfo(filePath).suffix().toLower();
-		if (Clipboard::presetExtensions.contains(ext))
-		{
-			castModel<ZynAddSubFxInstrument>()->loadFile(filePath);
-			_de->accept();
-			return;
-		}
+		castModel<ZynAddSubFxInstrument>()->loadFile(value);
+		_de->accept();
+		return;
 	}
 
 	_de->ignore();

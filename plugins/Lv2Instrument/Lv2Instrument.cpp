@@ -256,45 +256,24 @@ Lv2InsView::Lv2InsView(Lv2Instrument *_instrument, QWidget *_parent) :
 
 void Lv2InsView::dragEnterEvent(QDragEnterEvent *_dee)
 {
-	const QMimeData* mime = _dee->mimeData();
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (urls.isEmpty() == false)
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::audioExtensions.contains(ext))
-			{
-				_dee->acceptProposedAction();
-				return;
-			}
-		}
-	}
-	_dee->ignore();
+	StringPairDrag::processDragEnterEvent(_dee, "presetfile");
 }
 
 
 
 
-void Lv2InsView::dropEvent(QDropEvent *_de)
+void Lv2InsView::dropEvent(QDropEvent* _de)
 {
-	const QMimeData* mime = _de->mimeData();
-	if (mime->hasUrls())
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
+
+	QString type = data.first;
+	QString value = data.second;
+
+	if (type == "presetfile")
 	{
-		const QList<QUrl> urls = mime->urls();
-		if (urls.isEmpty() == false)
-		{
-			QString filePath = urls.first().toLocalFile();
-			QString ext = QFileInfo(filePath).suffix().toLower();
-			if (Clipboard::presetExtensions.contains(ext))
-			{
-				castModel<Lv2Instrument>()->loadFile(filePath);
-				_de->accept();
-				return;
-			}
-		}
+		castModel<Lv2Instrument>()->loadFile(value);
+		_de->accept();
+		return;
 	}
 	_de->ignore();
 }

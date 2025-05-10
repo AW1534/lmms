@@ -128,31 +128,28 @@ void SampleClipView::dragEnterEvent(QDragEnterEvent* event)
 	event->ignore();
 }
 
-void SampleClipView::dropEvent( QDropEvent * _de )
+void SampleClipView::dropEvent(QDropEvent* _de )
 {
-	const QList<QUrl> urls = _de->mimeData()->urls();
-	if (!urls.isEmpty())
-	{
-		QString filePath = urls.first().toLocalFile();
-		QString ext = QFileInfo(filePath).suffix().toLower();
-		if (Clipboard::audioExtensions.contains(ext)) { m_clip->setSampleFile(filePath); }
-	}
+	auto data = Clipboard::decodeMimeData(_de->mimeData());
 
-	if (StringPairDrag::decodeKey( _de ) == "samplefile")
+	QString type = data.first;
+	QString value = data.second;
+
+	if (type == "samplefile")
 	{
-		m_clip->setSampleFile( StringPairDrag::decodeValue( _de ) );
+		m_clip->setSampleFile(value);
 		_de->accept();
 	}
-	else if( StringPairDrag::decodeKey( _de ) == "sampledata" )
+	else if (type == "sampledata")
 	{
-		m_clip->setSampleBuffer(SampleLoader::createBufferFromBase64(StringPairDrag::decodeValue(_de)));
+		m_clip->setSampleBuffer(SampleLoader::createBufferFromBase64(value));
 		m_clip->updateLength();
 		update();
 		_de->accept();
 	}
 	else
 	{
-		ClipView::dropEvent( _de );
+		ClipView::dropEvent(_de);
 	}
 }
 
