@@ -97,10 +97,15 @@ namespace lmms::Clipboard
 	std::pair<QString, QString> decodeMimeData(const QMimeData* mimeData)
 	{
 		const QList<QUrl> urls = mimeData->urls();
+		QString type;
+		QString value;
 
-		QString type = decodeKey(mimeData);
-		QString value = decodeValue(mimeData);
+		if (hasFormat(MimeType::StringPair))
+		{
+			QString type = decodeKey(mimeData);
+			QString value = decodeValue(mimeData);
 
+		}
 		if (!urls.isEmpty())
 		{
 			value = urls.first().toLocalFile();
