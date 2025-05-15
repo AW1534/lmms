@@ -25,7 +25,6 @@
 #include "SlicerTView.h"
 
 #include <QDropEvent>
-#include <QFileInfo>
 #include <qpixmap.h>
 #include <qpushbutton.h>
 
@@ -73,8 +72,8 @@ SlicerTView::SlicerTView(SlicerT* instrument, QWidget* parent)
 	m_syncToggle->setModel(&m_slicerTParent->m_enableSync);
 
 	m_clearButton = new PixmapButton(this, tr("Clear all slices"));
-	m_clearButton->setActiveGraphic(PLUGIN_NAME::getIconPixmap("clearSlices_active"));
-	m_clearButton->setInactiveGraphic(PLUGIN_NAME::getIconPixmap("clearSlices_inactive"));
+	m_clearButton->setActiveGraphic(PLUGIN_NAME::getIconPixmap("clear_slices_active"));
+	m_clearButton->setInactiveGraphic(PLUGIN_NAME::getIconPixmap("clear_slices_inactive"));
 	m_clearButton->setToolTip(tr("Clear all slices"));
 	connect(m_clearButton, &PixmapButton::clicked, this, &SlicerTView::clearSlices);
 
@@ -119,9 +118,15 @@ Knob* SlicerTView::createStyledKnob()
 }
 
 // Clear all notes
-void SlicerTView::clearSlices() {
+void SlicerTView::clearSlices()
+{
 	m_slicerTParent->m_slicePoints.clear();
-	m_slicerTParent->m_slicePoints.push_back(0);
+
+	// Points are added to the start (0) and end (1) of the sample,
+	// so the whole sample can still be copied using MIDI.
+	m_slicerTParent->m_slicePoints.emplace_back(0);
+	m_slicerTParent->m_slicePoints.emplace_back(1);
+
 	emit m_slicerTParent->dataChanged();
 }
 
@@ -158,20 +163,31 @@ void SlicerTView::openFiles()
 // all the drag stuff is copied from AudioFileProcessor
 void SlicerTView::dragEnterEvent(QDragEnterEvent* dee)
 {
-	StringPairDrag::processDragEnterEvent(dee, QString("samplefile,clip_%1").arg(static_cast<int>(Track::Type::Sample)));
+	// For mimeType() and MimeType enum class
+	using namespace Clipboard;
+
+	if (dee->mimeData()->hasFormat(mimeType(MimeType::StringPair)))
+	{
+		QString txt = dee->mimeData()->data(mimeType(MimeType::StringPair));
+		if (txt.section(':', 0, 0) == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
+		{
+			dee->acceptProposedAction();
+		}
+		else if (txt.section(':', 0, 0) == "samplefile") { dee->acceptProposedAction(); }
+		else { dee->ignore(); }
+	}
+	else { dee->ignore(); }
 }
 
 void SlicerTView::dropEvent(QDropEvent* de)
 {
-	auto data = Clipboard::decodeMimeData(de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
-
-
+	QString type = StringPairDrag::decodeKey(de);
+	QString value = StringPairDrag::decodeValue(de);
 	if (type == "samplefile")
 	{
+		// set m_wf wave file
 		m_slicerTParent->updateFile(value);
+		return;
 	}
 	else if (type == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
 	{
@@ -264,7 +280,7 @@ void SlicerTView::resizeEvent(QResizeEvent* re)
 {
 	m_y1 = height() - s_bottomBoxOffset;
 
-	// left box
+	// Left box
 	m_noteThresholdKnob->move(s_x1 - 25, m_y1);
 	m_fadeOutKnob->move(s_x2 - 25, m_y1);
 
@@ -274,9 +290,10 @@ void SlicerTView::resizeEvent(QResizeEvent* re)
 	m_bpmBox->move(s_x5 - 13, m_y1 + 4);
 	m_snapSetting->move(s_x6 - 8, m_y1 + 3);
 
-	// right box
-	m_syncToggle->move((width() - 100), m_y1 - 6 - 1);
-	m_clearButton->move((width() - 100), m_y1 + 16 + 1);
+	// Right box
+	// For explanation on the choice of constants, look at #7850
+	m_syncToggle->move((width() - 100), m_y1 - 7);
+	m_clearButton->move((width() - 100), m_y1 + 17);
 
 	m_folderButton->move(width() - 20, height() - s_bottomBoxHeight - s_sampleBoxHeight + 1);
 

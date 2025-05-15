@@ -324,6 +324,7 @@ private:
 	void pauseTestNotes(bool pause = true );
 	void playChordNotes(int key, int velocity=-1);
 	void pauseChordNotes(int key);
+	void setEditMode(EditMode editMode);
 
 	void setKnifeAction();
 	void cancelKnifeAction();
