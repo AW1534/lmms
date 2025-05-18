@@ -804,7 +804,7 @@ bool MainWindow::saveProjectAs()
 	{
 		sfd = new FileDialog( this, tr( "Save Project" ), "",
 		tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
-			tr( "LMMS Project Template" ) + " (*.mpt)" );
+			tr("LMMS Project Template") + " (*.mpt)");
 	} else
 	{
 		sfd = new VersionedSaveDialog( this, optionsWidget, tr( "Save Project" ), "",
@@ -820,7 +820,7 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 	}
 	else
 	{
-		sfd->setDirectory( ConfigManager::inst()->userProjectsDir() );
+		sfd->setDirectory(ConfigManager::inst()->userProjectsDir());
 	}
 
 	// Don't write over file with suffix if no suffix is provided.
@@ -828,7 +828,7 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 							"nommpz" ).toInt() == 0
 						? "mmpz"
 						: "mmp" ;
-	sfd->setDefaultSuffix( suffix );
+	sfd->setDefaultSuffix(suffix);
 
 	QString fileName;
 
@@ -843,7 +843,7 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 	}
 	else
 	{
-		if(sfd->exec() != FileDialog::Accepted || sfd->selectedFiles().isEmpty() || sfd->selectedFiles()[0] == "" )
+		if (sfd->exec() != FileDialog::Accepted || sfd->selectedFiles().isEmpty() || sfd->selectedFiles()[0] == "")
 		{
 			delete sfd;
 			return false;
@@ -855,8 +855,8 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 	if( sfd->selectedNameFilter().contains( "(*.mpt)" ) )
 	{
 		// Remove the default suffix
-		fileName.remove( "." + suffix );
-		if( !sfd->selectedFiles()[0].endsWith( ".mpt" ) )
+		fileName.remove("." + suffix);
+		if (!sfd->selectedFiles()[0].endsWith( ".mpt" ))
 		{
 			if( VersionedSaveDialog::fileExistsQuery( fileName + ".mpt",
 					tr( "Save project template" ) ) )
@@ -886,7 +886,7 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 		{
 			if( this->guiSaveProjectAs( fileName ) )
 			{
-				if( getSession() == SessionState::Recover )
+				if (getSession() == SessionState::Recover)
 				{
 					sessionCleanup();
 				}
@@ -897,9 +897,10 @@ tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
 		}
 		delete optionsDialog;
 		return false;
-	} else
+	}
+	else
 	{
-		if( this->guiSaveProjectAs( fileName ) )
+		if (this->guiSaveProjectAs(fileName))
 		{
 			if( getSession() == SessionState::Recover )
 			{
