@@ -92,7 +92,7 @@ enum class MimeType
 	QString decodeValue( const QMimeData * mimeData );
 
 	/**
-	 * @brief Extracts and classifies drag-and-drop data from a QDropEvent.
+	 * @brief Extracts and classifies drag-and-drop data from a QMimeData.
 	 *
 	 * This function inspects a drop event to determine the type of file or action being dropped
 	 * and retrieves the associated value (typically a file path or an ID). If the event contains URLs,
@@ -102,12 +102,12 @@ enum class MimeType
 	 * The function also uses fallback decoding via StringPairDrag in case the type and value
 	 * were encoded in a non-file-based drag operation.
 	 *
-	 * @param _de Pointer to the QDropEvent containing drag-and-drop data.
+	 * @param _de Pointer to the QMimeData containing drag-and-drop data.
 	 * @return A std::pair where:
 	 *         - first is a QString representing the inferred type (e.g., "presetfile", "midifile").
 	 *         - second is the QString value (e.g., file path or identifier).
 	 */
-	std::pair<QString, QString> decodeMimeData(const QMimeData* mimeData);
+	LMMS_EXPORT std::pair<QString, QString> decodeMimeData(const QMimeData* mimeData);
 	void startFileDrag(gui::FileItem* file, QObject* qo);
 
 	inline const char * mimeType( MimeType type )
