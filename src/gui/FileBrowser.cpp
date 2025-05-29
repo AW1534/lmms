@@ -25,8 +25,7 @@
 
 #include "FileBrowser.h"
 
-#include <Clipboard.h>
-#include <PathUtil.h>
+
 #include <QApplication>
 #include <QDirIterator>
 #include <QHBoxLayout>
@@ -43,6 +42,7 @@
 #include <queue>
 
 #include "AudioEngine.h"
+#include "Clipboard.h"
 #include "ConfigManager.h"
 #include "DataFile.h"
 #include "Engine.h"
@@ -55,6 +55,7 @@
 #include "InstrumentTrackWindow.h"
 #include "KeyboardShortcuts.h"
 #include "MainWindow.h"
+#include "PathUtil.h"
 #include "PatternStore.h"
 #include "PluginFactory.h"
 #include "PresetPreviewPlayHandle.h"
