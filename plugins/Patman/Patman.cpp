@@ -569,7 +569,7 @@ void PatmanView::updateFilename()
 
 void PatmanView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	StringPairDrag::processDragEnterEvent(_dee, "samplefile");
+	StringPairDrag::processDragEnterEvent(_dee, {"samplefile"});
 }
 
 
@@ -577,10 +577,7 @@ void PatmanView::dragEnterEvent(QDragEnterEvent* _dee)
 
 void PatmanView::dropEvent( QDropEvent * _de )
 {
-	auto data = Clipboard::decodeMimeData(_de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
 
 	if (type == "samplefile")
 	{

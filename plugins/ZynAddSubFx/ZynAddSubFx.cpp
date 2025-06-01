@@ -562,7 +562,7 @@ ZynAddSubFxView::ZynAddSubFxView( Instrument * _instrument, QWidget * _parent ) 
 
 void ZynAddSubFxView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	StringPairDrag::processDragEnterEvent(_dee, "pluginpresetfile,presetfile");
+	StringPairDrag::processDragEnterEvent(_dee, {"pluginpresetfile", "presetfile"});
 }
 
 
@@ -570,10 +570,7 @@ void ZynAddSubFxView::dragEnterEvent(QDragEnterEvent* _dee)
 
 void ZynAddSubFxView::dropEvent( QDropEvent * _de )
 {
-	auto data = Clipboard::decodeMimeData(_de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
 
 	if (type == "pluginpresetfile")
 	{

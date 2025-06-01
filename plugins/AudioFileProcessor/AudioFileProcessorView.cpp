@@ -149,7 +149,8 @@ AudioFileProcessorView::AudioFileProcessorView(Instrument* instrument,
 
 void AudioFileProcessorView::dragEnterEvent(QDragEnterEvent* dee)
 {
-	StringPairDrag::processDragEnterEvent(dee, "samplefile");
+	StringPairDrag::processDragEnterEvent(dee, {"samplefile"
+});
 }
 
 void AudioFileProcessorView::newWaveView()
@@ -170,10 +171,7 @@ void AudioFileProcessorView::newWaveView()
 
 void AudioFileProcessorView::dropEvent(QDropEvent* de)
 {
-	auto data = Clipboard::decodeMimeData(de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
 
 	if (type == "samplefile")
 	{

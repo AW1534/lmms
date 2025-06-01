@@ -24,12 +24,13 @@
 
 #include "SampleTrackView.h"
 
-#include <Clipboard.h>
 #include <QApplication>
 #include <QFileInfo>
 #include <QMenu>
 
+#include "Clipboard.h"
 #include "ConfigManager.h"
+#include "embed.h"
 #include "Engine.h"
 #include "FadeButton.h"
 #include "FontHelper.h"
@@ -37,15 +38,13 @@
 #include "MixerView.h"
 #include "GuiApplication.h"
 #include "Knob.h"
-#include "Mixer.h"
-#include "MixerView.h"
 #include "SampleClip.h"
 #include "SampleTrackWindow.h"
 #include "SongEditor.h"
 #include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "TrackLabelButton.h"
-#include "embed.h"
+
 
 namespace lmms::gui
 {
@@ -190,24 +189,7 @@ void SampleTrackView::modelChanged()
 
 void SampleTrackView::dragEnterEvent(QDragEnterEvent* event)
 {
-	const QMimeData* mime = event->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::audioExtensions.contains(ext))
-			{
-				event->acceptProposedAction();
-				return;
-			}
-		}
-	}
-	event->ignore();
+	StringPairDrag::processDragEnterEvent(event, {"automatable_model"});
 }
 
 
@@ -215,10 +197,7 @@ void SampleTrackView::dragEnterEvent(QDragEnterEvent* event)
 
 void SampleTrackView::dropEvent(QDropEvent* de)
 {
-	auto data = Clipboard::decodeMimeData(de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
 
 	if (type == "samplefile") {
 		int trackHeadWidth = ConfigManager::inst()->value("ui", "compacttrackbuttons").toInt()==1

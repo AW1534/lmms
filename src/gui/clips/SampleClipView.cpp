@@ -24,12 +24,12 @@
 
 #include "SampleClipView.h"
 
-#include <Clipboard.h>
 #include <QApplication>
 #include <QMenu>
 #include <QPainter>
 
 #include "AutomationEditor.h"
+#include "Clipboard.h"
 #include "GuiApplication.h"
 #include "PathUtil.h"
 #include "SampleClip.h"
@@ -118,7 +118,7 @@ void SampleClipView::dragEnterEvent(QDragEnterEvent* event)
 			QString path = urls.first().toLocalFile();
 			QString ext = QFileInfo(path).suffix().toLower();
 
-			if (Clipboard::audioExtensions.contains(ext))
+			if (Clipboard::isAudioFile(ext))
 			{
 				event->acceptProposedAction();
 				return;
@@ -130,10 +130,7 @@ void SampleClipView::dragEnterEvent(QDragEnterEvent* event)
 
 void SampleClipView::dropEvent(QDropEvent* _de )
 {
-	auto data = Clipboard::decodeMimeData(_de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
 
 	if (type == "samplefile")
 	{

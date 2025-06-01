@@ -24,7 +24,6 @@
 
 #include "TrackView.h"
 
-#include <Clipboard.h>
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QMouseEvent>
@@ -33,6 +32,7 @@
 #include <QtGlobal>
 
 #include "AudioEngine.h"
+#include "Clipboard.h"
 #include "ClipView.h"
 #include "ConfigManager.h"
 #include "DataFile.h"
@@ -209,12 +209,9 @@ void TrackView::modelChanged()
  */
 void TrackView::dragEnterEvent( QDragEnterEvent * dee )
 {
-	StringPairDrag::processDragEnterEvent( dee, "track_" +
-					QString::number( static_cast<int>(m_track->type()) ) );
+	StringPairDrag::processDragEnterEvent( dee, {"track_", QString::number(static_cast<int>(m_track->type()))
+});
 }
-
-
-
 
 /*! \brief Accept a drop event on this track View.
  *
@@ -226,10 +223,8 @@ void TrackView::dragEnterEvent( QDragEnterEvent * dee )
  */
 void TrackView::dropEvent(QDropEvent* de)
 {
-	auto data = Clipboard::decodeMimeData(de->mimeData());
+	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
 
-	QString type = data.first;
-	QString value = data.second;
 	if( type == ( "track_" + QString::number( static_cast<int>(m_track->type()) ) ) )
 	{
 		// value contains our XML-data so simply create a

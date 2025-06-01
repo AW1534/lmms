@@ -24,12 +24,12 @@
 
 #include "TrackContainerView.h"
 
-#include <Clipboard.h>
 #include <QLayout>
 #include <QMessageBox>
 #include <QScrollBar>
 
 #include "AudioEngine.h"
+#include "Clipboard.h"
 #include "DataFile.h"
 #include "FileBrowser.h"
 #include "GuiApplication.h"
@@ -369,12 +369,9 @@ void TrackContainerView::clearAllTracks()
 
 void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent( _dee,
-		QString( "presetfile,pluginpresetfile,samplefile,instrument,"
-				"importedproject,soundfontfile,patchfile,vstpluginfile,projectfile,"
-				"track_%1,track_%2")
-			.arg(static_cast<int>(Track::Type::Instrument))
-			.arg(static_cast<int>(Track::Type::Sample)));
+	StringPairDrag::processDragEnterEvent( _dee, {"presetfile", "pluginpresetfile", "samplefile", "instrument",
+				"importedproject", "soundfontfile","patchfile","vstpluginfile","projectfile",
+				QString("track_%1").arg(static_cast<int>(Track::Type::Instrument)), QString("track_%1").arg(static_cast<int>(Track::Type::Sample))});
 }
 
 
@@ -389,17 +386,14 @@ void TrackContainerView::stopRubberBand()
 
 
 
-void TrackContainerView::dropEvent( QDropEvent * _de )
+void TrackContainerView::dropEvent(QDropEvent* _de)
 {
-	auto data = Clipboard::decodeMimeData(_de->mimeData());
-
-	QString type = data.first;
-	QString value = data.second;
+	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
 
 	if (type == "instrument")
 	{
 		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
-		auto ilt = new InstrumentLoaderThread(this, it, value); // TODO: this is a memory leak (according to CLion)
+		auto ilt = new InstrumentLoaderThread(this, it, value);
 		ilt->start();
 		// it->toggledInstrumentTrackButton(true);
 		_de->accept();

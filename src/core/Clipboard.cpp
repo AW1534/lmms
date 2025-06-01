@@ -24,16 +24,61 @@
 
 #include "Clipboard.h"
 
-#include <FileBrowser.h>
 #include <QApplication>
 #include <QClipboard>
-#include <QDrag>
-#include <QMimeData>
-#include <QUrl>
-#include <StringPairDrag.h>
+
+#include "FileBrowser.h"
+#include "SampleDecoder.h"
+#include "StringPairDrag.h"
 
 namespace lmms::Clipboard
 {
+
+	const QStringList projectExtensions{"mmp", "mpt", "mmpz"};
+	const QStringList presetExtensions{"xpf", "xml", "xiz", "lv2"};
+	const QStringList soundFontExtensions{"sf2", "sf3"};
+	const QStringList patchExtensions{"pat"};
+	const QStringList midiExtensions{"mid", "midi", "rmi"};
+	#ifdef LMMS_BUILD_WINDOWS
+	const QStringList vstPluginExtensions{"dll"};
+	#else
+	const QStringList vstPluginExtensions{"dll", "so"};
+	#endif
+	QStringList audioExtensions{};
+
+	//! gets the extension of a file, or returns the string back if no extension is found
+	inline QString getExtension(const QString& file)
+	{
+		const QStringList parts = file.split('.');
+		return parts.isEmpty() ? file.toLower() : parts.last().toLower();
+	}
+
+	//
+	/* @brief updates the lists of extensions. TODO: currently, this only applies for audioExtensions, but all the lists should be made
+	 */
+	void updateExtensionLists()
+	{
+		for (const SampleDecoder::AudioType& at : SampleDecoder::supportedAudioTypes())
+		{
+			audioExtensions += QString::fromStdString(at.extension);
+		}
+	}
+
+	bool isAudioFile(const QString& ext)
+	{
+		if (audioExtensions.isEmpty())
+		{
+			updateExtensionLists();
+		}
+
+		return audioExtensions.contains(getExtension(ext));
+	}
+	bool isProjectFile(const QString& ext)   { return projectExtensions.contains(getExtension(ext)); }
+	bool isPresetFile(const QString& ext)    { return presetExtensions.contains(getExtension(ext)); }
+	bool isSoundFontFile(const QString& ext) { return soundFontExtensions.contains(getExtension(ext)); }
+	bool isPatchFile(const QString& ext)     { return patchExtensions.contains(getExtension(ext)); }
+	bool isMidiFile(const QString& ext)      { return midiExtensions.contains(getExtension(ext)); }
+	bool isVstPluginFile(const QString& ext) { return vstPluginExtensions.contains(getExtension(ext)); }
 
 	const QMimeData * getMimeData()
 	{

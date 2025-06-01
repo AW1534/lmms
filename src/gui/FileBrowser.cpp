@@ -25,7 +25,7 @@
 
 #include "FileBrowser.h"
 
-#include <PathUtil.h>
+
 #include <QApplication>
 #include <QDirIterator>
 #include <QHBoxLayout>
@@ -39,13 +39,13 @@
 #include <QShortcut>
 #include <QStringList>
 #include <cassert>
-#include <QDateTime>
+#include <queue>
 
 #include "AudioEngine.h"
+#include "Clipboard.h"
 #include "ConfigManager.h"
 #include "DataFile.h"
 #include "Engine.h"
-#include "FileBrowser.h"
 #include "FileRevealer.h"
 #include "GuiApplication.h"
 #include "ImportFilter.h"
@@ -54,6 +54,7 @@
 #include "InstrumentTrackWindow.h"
 #include "KeyboardShortcuts.h"
 #include "MainWindow.h"
+#include "PathUtil.h"
 #include "PatternStore.h"
 #include "PluginFactory.h"
 #include "PresetPreviewPlayHandle.h"

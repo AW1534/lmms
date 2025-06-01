@@ -25,10 +25,9 @@
 
 #include "AutomationTrackView.h"
 
-#include <Clipboard.h>
-
 #include "AutomationClip.h"
 #include "AutomationTrack.h"
+#include "Clipboard.h"
 #include "Engine.h"
 #include "ProjectJournal.h"
 #include "StringPairDrag.h"
@@ -52,7 +51,8 @@ AutomationTrackView::AutomationTrackView( AutomationTrack * _at, TrackContainerV
 
 void AutomationTrackView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent( _dee, "automatable_model" );
+	StringPairDrag::processDragEnterEvent( _dee, {"automatable_model"
+} );
 }
 
 
@@ -60,10 +60,8 @@ void AutomationTrackView::dragEnterEvent( QDragEnterEvent * _dee )
 
 void AutomationTrackView::dropEvent( QDropEvent * _de )
 {
-	auto data = Clipboard::decodeMimeData(_de->mimeData());
+	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
 
-	QString type = data.first;
-	QString value = data.second;
 	if( type == "automatable_model" )
 	{
 		auto mod = dynamic_cast<AutomatableModel*>(Engine::projectJournal()->journallingObject(value.toInt()));
