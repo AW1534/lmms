@@ -25,7 +25,6 @@
 
 #include "FileBrowser.h"
 
-#include <Clipboard.h>
 #include <PathUtil.h>
 #include <QApplication>
 #include <QDirIterator>
@@ -106,6 +105,9 @@ FileBrowser::FileBrowser(Type type, const QString& directories, const QString& f
 	m_filterEdit->addAction(embed::getIconPixmap("zoom"), QLineEdit::LeadingPosition);
 
 	connect(m_filterEdit, &QLineEdit::textEdited, this, &FileBrowser::onSearch);
+	connect(&m_search, &FileSearch::started, this, &FileBrowser::onSearchStarted, Qt::QueuedConnection);
+	connect(&m_search, &FileSearch::finished, this, &FileBrowser::onSearchFinished, Qt::QueuedConnection);
+	connect(&m_search, &FileSearch::foundMatch, this, &FileBrowser::onSearchMatch, Qt::QueuedConnection);
 
 	auto reload_btn = new QPushButton(embed::getIconPixmap("reload"), QString(), searchWidget);
 	reload_btn->setToolTip( tr( "Refresh list" ) );
@@ -206,8 +208,6 @@ void FileBrowser::restoreDirectoriesStates()
 
 void FileBrowser::onSearch(const QString& filter)
 {
-	m_searchManager.cancel();
-
 	if (filter.isEmpty())
 	{
 		m_searchTreeWidget->hide();
@@ -223,46 +223,35 @@ void FileBrowser::onSearch(const QString& filter)
 	auto directoryFilters = QDir::AllEntries | QDir::NoDotAndDotDot;
 	if (m_showHiddenContent) { directoryFilters |= QDir::Hidden; }
 
-	const auto keywords = filter.split(" ");
+	const auto searchTask = FileSearch::Task{.filter = filter,
+		.paths = directories,
+		.extensions = FileItem::defaultFilters().split(" "),
+		.dirFilters = directoryFilters};
 
-	m_fileBrowserTreeWidget->hide();
 	m_searchTreeWidget->clear();
 	m_searchTreeWidget->show();
+	m_fileBrowserTreeWidget->hide();
+	m_search.search(searchTask);
+}
 
-	m_searchManager.setCurrentSearchTask(
-		ThreadPool::instance().enqueue([this, directories, directoryFilters, keywords] {
-			QMetaObject::invokeMethod(m_searchIndicator, [this] { m_searchIndicator->setRange(0, 0); });
+void FileBrowser::onSearchMatch(const QString& path)
+{
+	const auto fileInfo = QFileInfo{path};
+	auto item = static_cast<QTreeWidgetItem*>(nullptr);
+	if (fileInfo.isDir()) { item = new Directory(fileInfo.fileName(), fileInfo.dir().path(), m_filter); }
+	else if (fileInfo.isFile()) { item = new FileItem(fileInfo.fileName(), fileInfo.dir().path()); }
 
-			for (const auto& path : directories)
-			{
-				const auto extensionFilters = FileItem::defaultFilters().split(" ");
-				auto dirIt = QDirIterator{path, directoryFilters,
-					QDirIterator::IteratorFlag::Subdirectories | QDirIterator::IteratorFlag::FollowSymlinks};
+	m_searchTreeWidget->addTopLevelItem(item);
+}
 
-				while (dirIt.hasNext() && !m_searchManager.cancelled())
-				{
-					const auto fileInfo = QFileInfo{dirIt.next()};
-					const auto fileName = fileInfo.fileName();
+void FileBrowser::onSearchStarted()
+{
+	m_searchIndicator->setRange(0, 0);
+}
 
-					const auto containsAllKeywords = std::all_of(keywords.begin(), keywords.end(),
-						[&](const auto& keyword) { return fileName.contains(keyword, Qt::CaseInsensitive); });
-
-					const auto validDir = fileInfo.isDir() && containsAllKeywords;
-					const auto validFile = fileInfo.isFile() && containsAllKeywords
-						&& extensionFilters.contains(QString{"*.%1"}.arg(fileInfo.completeSuffix()));
-
-					auto item = static_cast<QTreeWidgetItem*>(nullptr);
-					if (validDir) { item = new Directory(fileInfo.fileName(), fileInfo.dir().path(), m_filter); }
-					else if (validFile) { item = new FileItem(fileInfo.fileName(), fileInfo.dir().path()); }
-					else { continue; }
-
-					QMetaObject::invokeMethod(
-						m_searchTreeWidget, [this, item] { m_searchTreeWidget->addTopLevelItem(item); });
-				}
-			}
-
-			QMetaObject::invokeMethod(m_searchIndicator, [this] { m_searchIndicator->setRange(0, 1); });
-		}));
+void FileBrowser::onSearchFinished()
+{
+	m_searchIndicator->setRange(0, 1);
 }
 
 void FileBrowser::reloadTree()
@@ -618,10 +607,17 @@ void FileBrowserTreeWidget::contextMenuEvent(QContextMenuEvent* e)
 	{
 	case TypeFileItem: {
 		auto file = dynamic_cast<FileItem*>(item);
-		const auto path = QFileInfo{file->fullName()}.absoluteFilePath();
 
 		contextMenu.addAction(QIcon(embed::getIconPixmap("folder")), tr("Show in %1").arg(fileManager),
-			[=] { FileRevealer::reveal(file->fullName()); });
+			[file] { FileRevealer::reveal(file->fullName()); });
+
+		if (file->isTrack())
+		{
+			contextMenu.addAction(
+				tr("Send to active instrument-track"), [file, this] { sendToActiveInstrumentTrack(file); });
+		}
+
+		const auto path = QFileInfo{file->fullName()}.absoluteFilePath();
 
 		if (ConfigManager::inst()->isFavoriteItem(file->fullName()))
 		{
@@ -637,8 +633,7 @@ void FileBrowserTreeWidget::contextMenuEvent(QContextMenuEvent* e)
 		if (file->isTrack())
 		{
 			contextMenu.addSeparator();
-			contextMenu.addAction(
-				tr("Send to active instrument-track"), [=, this] { sendToActiveInstrumentTrack(file); });
+			contextMenu.addAction(tr("Send to active instrument-track"), [&] { sendToActiveInstrumentTrack(file); });
 		}
 
 		auto songEditorHeader = new QAction(tr("Song Editor"), nullptr);
@@ -656,8 +651,8 @@ void FileBrowserTreeWidget::contextMenuEvent(QContextMenuEvent* e)
 		auto dir = dynamic_cast<Directory*>(item);
 		const auto path = QFileInfo{dir->fullName()}.absoluteFilePath();
 
-		contextMenu.addAction(QIcon(embed::getIconPixmap("folder")), tr("Open in %1").arg(fileManager),
-			[dir] {FileRevealer::openDir(dir->fullName());
+		contextMenu.addAction(QIcon(embed::getIconPixmap("folder")), tr("Open in %1").arg(fileManager), [=] {
+			FileRevealer::openDir(dir->fullName());
 		});
 
 		if (ConfigManager::inst()->isFavoriteItem(dir->fullName()))
@@ -814,15 +809,56 @@ void FileBrowserTreeWidget::stopPreview()
 
 
 
-void FileBrowserTreeWidget::mouseMoveEvent(QMouseEvent* me)
+void FileBrowserTreeWidget::mouseMoveEvent( QMouseEvent * me )
 {
-	if (m_mousePressed && (m_pressPos - me->pos()).manhattanLength() > QApplication::startDragDistance())
+	if( m_mousePressed == true &&
+		( m_pressPos - me->pos() ).manhattanLength() >
+					QApplication::startDragDistance() )
 	{
 		// make sure any playback is stopped
-		mouseReleaseEvent(nullptr);
+		mouseReleaseEvent( nullptr );
 
 		auto f = dynamic_cast<FileItem*>(itemAt(m_pressPos));
-		Clipboard::startFileDrag(f, this);
+		if( f != nullptr )
+		{
+			switch( f->type() )
+			{
+				case FileItem::FileType::Preset:
+					new StringPairDrag( f->handling() == FileItem::FileHandling::LoadAsPreset ?
+							"presetfile" : "pluginpresetfile",
+							f->fullName(),
+							embed::getIconPixmap( "preset_file" ), this );
+					break;
+
+				case FileItem::FileType::Sample:
+					new StringPairDrag( "samplefile", f->fullName(),
+							embed::getIconPixmap( "sample_file" ), this );
+					break;
+				case FileItem::FileType::SoundFont:
+					new StringPairDrag( "soundfontfile", f->fullName(),
+							embed::getIconPixmap( "soundfont_file" ), this );
+					break;
+				case FileItem::FileType::Patch:
+					new StringPairDrag( "patchfile", f->fullName(),
+							embed::getIconPixmap( "sample_file" ), this );
+					break;
+				case FileItem::FileType::VstPlugin:
+					new StringPairDrag( "vstpluginfile", f->fullName(),
+							embed::getIconPixmap( "vst_plugin_file" ), this );
+					break;
+				case FileItem::FileType::Midi:
+					new StringPairDrag( "importedproject", f->fullName(),
+							embed::getIconPixmap( "midi_file" ), this );
+					break;
+				case FileItem::FileType::Project:
+					new StringPairDrag( "projectfile", f->fullName(),
+							embed::getIconPixmap( "project_file" ), this );
+					break;
+
+				default:
+					break;
+			}
+		}
 	}
 }
 
