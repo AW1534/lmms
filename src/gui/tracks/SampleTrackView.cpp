@@ -189,7 +189,7 @@ void SampleTrackView::modelChanged()
 
 void SampleTrackView::dragEnterEvent(QDragEnterEvent* event)
 {
-	StringPairDrag::processDragEnterEvent(event, {"automatable_model"});
+	StringPairDrag::processDragEnterEvent(event, {"samplefile"});
 }
 
 
