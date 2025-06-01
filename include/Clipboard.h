@@ -78,7 +78,7 @@ enum class MimeType
 	 * The function also uses fallback decoding via StringPairDrag in case the type and value
 	 * were encoded in a non-file-based drag operation.
 	 *
-	 * @param _de Pointer to the QMimeData containing drag-and-drop data.
+	 * @param mimeData Pointer to the QMimeData containing drag-and-drop data.
 	 * @return A std::pair where:
 	 *         - first is a QString representing the inferred type (e.g., "presetfile", "midifile").
 	 *         - second is the QString value (e.g., file path or identifier).
