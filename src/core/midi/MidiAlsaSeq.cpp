@@ -23,13 +23,11 @@
  */
 
 #include "MidiAlsaSeq.h"
-
-#include <qset.h>
-
 #include "ConfigManager.h"
 #include "Engine.h"
-#include "MidiPort.h"
 #include "Song.h"
+#include "MidiPort.h"
+
 
 #ifdef LMMS_HAVE_ALSA
 
@@ -44,22 +42,11 @@ const int EventPollTimeOut = 250;
 static QString portName( snd_seq_client_info_t * _cinfo,
 								snd_seq_port_info_t * _pinfo )
 {
-	return QString( "%1::%2::%3::%4" ).
+	return QString( "%1:%2 %3:%4" ).
 					arg( snd_seq_port_info_get_client( _pinfo ) ).
 					arg( snd_seq_port_info_get_port( _pinfo ) ).
 					arg( snd_seq_client_info_get_name( _cinfo ) ).
 					arg( snd_seq_port_info_get_name( _pinfo ) );
-}
-
-static QString friendlyPortName(snd_seq_client_info_t* _cinfo, snd_seq_port_info_t * _pinfo)
-{
-	QString name = snd_seq_client_info_get_name(_cinfo);
-	if (name == "LMMS")
-	{
-		return QString("[LMMS] %1").arg(snd_seq_port_info_get_name(_pinfo));
-	}
-
-	return name;
 }
 
 static QString portName( snd_seq_t * _seq, const snd_seq_addr_t * _addr )
@@ -644,9 +631,10 @@ void MidiAlsaSeq::changeQueueTempo( bpm_t _bpm )
 
 void MidiAlsaSeq::updatePortList()
 {
-	QMap<QString, QString> readablePortMap;
-	QMap<QString, QString> writablePortMap;
+	QStringList readablePorts;
+	QStringList writablePorts;
 
+	// get input- and output-ports
 	snd_seq_client_info_t * cinfo;
 	snd_seq_port_info_t * pinfo;
 
@@ -665,47 +653,41 @@ void MidiAlsaSeq::updatePortList()
 		snd_seq_port_info_set_port( pinfo, -1 );
 		while( snd_seq_query_next_port( m_seqHandle, pinfo ) >= 0 )
 		{
-			const int portType = snd_seq_port_info_get_type( pinfo );
-			if( !( portType & SND_SEQ_PORT_TYPE_MIDI_GENERIC ) &&
-				!( portType & SND_SEQ_PORT_TYPE_MIDI_GM ) &&
-				!( portType & SND_SEQ_PORT_TYPE_MIDI_GS ) &&
-				!( portType & SND_SEQ_PORT_TYPE_MIDI_XG ) )
+			// we need both READ and SUBS_READ
+			if( ( snd_seq_port_info_get_capability( pinfo )
+			     & ( SND_SEQ_PORT_CAP_READ |
+					SND_SEQ_PORT_CAP_SUBS_READ ) ) ==
+					( SND_SEQ_PORT_CAP_READ |
+					  	SND_SEQ_PORT_CAP_SUBS_READ ) )
 			{
-				continue;
+				readablePorts.push_back( portName( cinfo, pinfo ) );
 			}
-
-			QString portId = portName(cinfo, pinfo);
-			QString portName = friendlyPortName(cinfo, pinfo);
-
-			const int cap = snd_seq_port_info_get_capability( pinfo );
-			if( ( cap & ( SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ ) ) ==
-				( SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ ))
+			if( ( snd_seq_port_info_get_capability( pinfo )
+			     & ( SND_SEQ_PORT_CAP_WRITE |
+					SND_SEQ_PORT_CAP_SUBS_WRITE ) ) ==
+					( SND_SEQ_PORT_CAP_WRITE |
+					  	SND_SEQ_PORT_CAP_SUBS_WRITE ) )
 			{
-				readablePortMap.insert(portId, portName);
-			}
-
-			if( ( cap & ( SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE ) ) ==
-				( SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE ))
-			{
-				writablePortMap.insert(portId, portName);
+				writablePorts.push_back( portName( cinfo, pinfo ) );
 			}
 		}
 	}
 
 	m_seqMutex.unlock();
 
+
 	snd_seq_client_info_free( cinfo );
 	snd_seq_port_info_free( pinfo );
 
-	if( m_readablePortMap != readablePortMap)
+	if( m_readablePorts != readablePorts )
 	{
-		m_readablePortMap = readablePortMap;
+		m_readablePorts = readablePorts;
 		emit readablePortsChanged();
 	}
 
-	if( m_writablePortMap != writablePortMap)
+	if( m_writablePorts != writablePorts )
 	{
-		m_writablePortMap = writablePortMap;
+		m_writablePorts = writablePorts;
 		emit writablePortsChanged();
 	}
 }

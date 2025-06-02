@@ -29,6 +29,7 @@
 #include <QDir>
 #include <QMutex>
 #include <QProgressBar>
+#include <memory>
 
 #include "FileSearch.h"
 #include "embed.h"
@@ -79,6 +80,20 @@ public:
 
 	~FileBrowser() override = default;
 
+	static QStringList excludedPaths()
+	{
+		static auto s_excludedPaths = QStringList{
+#ifdef LMMS_BUILD_LINUX
+			"/bin", "/boot", "/dev", "/etc", "/proc", "/run", "/sbin",
+			"/sys"
+#endif
+#ifdef LMMS_BUILD_WIN32
+			"C:\\Windows"
+#endif
+		};
+		return s_excludedPaths;
+	}
+
 	static QDir::Filters dirFilters() { return QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden; }
 	static QDir::SortFlags sortFlags() { return QDir::LocaleAware | QDir::DirsFirst | QDir::Name | QDir::IgnoreCase; }
 
@@ -95,10 +110,10 @@ private:
 	void saveDirectoriesStates();
 	void restoreDirectoriesStates();
 
+	void foundSearchMatch(FileSearch* search, const QString& match);
+	void searchCompleted(FileSearch* search);
 	void onSearch(const QString& filter);
-	void onSearchMatch(const QString& path);
-	void onSearchStarted();
-	void onSearchFinished();
+	void displaySearch(bool on);
 
 	void addContentCheckBox();
 
@@ -108,8 +123,8 @@ private:
 	QLineEdit * m_filterEdit;
 	Type m_type;
 
+	std::shared_ptr<FileSearch> m_currentSearch;
 	QProgressBar* m_searchIndicator = nullptr;
-	FileSearch m_search;
 
 	QString m_directories; //!< Directories to search, split with '*'
 	QString m_filter; //!< Filter as used in QDir::match()
@@ -128,6 +143,9 @@ private:
 	QList<QString> m_savedExpandedDirs;
 	QString m_previousFilterValue;
 } ;
+
+
+
 
 class FileBrowserTreeWidget : public QTreeWidget
 {
@@ -184,22 +202,16 @@ private slots:
 	void updateDirectory( QTreeWidgetItem * item );
 } ;
 
-class FileBrowserWidgetItem : public QTreeWidgetItem
-{
-public:
-	FileBrowserWidgetItem(const QStringList& strings, int type, QTreeWidget* parent = nullptr);
-	virtual QString fullName(QString path = QString{}) const = 0;
-};
 
 
-class Directory : public FileBrowserWidgetItem
+class Directory : public QTreeWidgetItem
 {
 public:
-	Directory(const QString& filename, const QString& path, const QString& filter);
+	Directory(const QString& filename, const QString& path, const QString& filter, bool disableEntryPopulation = false);
 
 	void update();
 
-	QString fullName(QString path = QString{})  const override
+	inline QString fullName( QString path = QString() )
 	{
 		if( path.isEmpty() )
 		{
@@ -237,12 +249,13 @@ private:
 	QString m_filter;
 
 	int m_dirCount;
+	bool m_disableEntryPopulation = false;
 } ;
 
 
 
 
-class FileItem : public FileBrowserWidgetItem
+class FileItem : public QTreeWidgetItem
 {
 public:
 	enum class FileType
@@ -271,7 +284,7 @@ public:
 							const QString & path );
 	FileItem( const QString & name, const QString & path );
 
-	QString fullName(QString path = QString{}) const override
+	QString fullName() const
 	{
 		return QFileInfo(m_path, text(0)).absoluteFilePath();
 	}

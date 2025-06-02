@@ -112,8 +112,6 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 			"ui", "trackdeletionwarning", "1").toInt()),
 	m_mixerChannelDeletionWarning(ConfigManager::inst()->value(
 			"ui", "mixerchanneldeletionwarning", "1").toInt()),
-	m_nativeFileDialog(ConfigManager::inst()->value(
-			"ui", "nativefiledialog", "1").toInt()),
 	m_MMPZ(!ConfigManager::inst()->value(
 			"app", "nommpz").toInt()),
 	m_disableBackup(!ConfigManager::inst()->value(
@@ -256,8 +254,6 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 		m_trackDeletionWarning, SLOT(toggleTrackDeletionWarning(bool)), false);
 	addCheckBox(tr("Show warning when deleting a mixer channel that is in use"), guiGroupBox, guiGroupLayout,
 		m_mixerChannelDeletionWarning,	SLOT(toggleMixerChannelDeletionWarning(bool)), false);
-	addCheckBox(tr("Use native file dialog"), guiGroupBox, guiGroupLayout,
-		m_nativeFileDialog, SLOT(toggleNativeFileDialog(bool)), false);
 
 	m_loopMarkerComboBox = new QComboBox{guiGroupBox};
 
@@ -737,32 +733,21 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	QGroupBox * midiAutoAssignBox = new QGroupBox(tr("Automatically assign MIDI controller to selected track"), midi_w);
 	QVBoxLayout * midiAutoAssignLayout = new QVBoxLayout(midiAutoAssignBox);
 
-	MidiClient* midiClient = Engine::audioEngine()->midiClient();
-
 	m_assignableMidiDevices = new QComboBox(midiAutoAssignBox);
 	midiAutoAssignLayout->addWidget(m_assignableMidiDevices);
-	m_assignableMidiDevices->addItem("None");
-
-	QStringList friendlyReadablePorts = midiClient->friendlyReadablePorts();
-	QStringList readablePorts = midiClient->readablePorts();
-
-	if (!midiClient->isRaw())
+	m_assignableMidiDevices->addItem("none");
+	if ( !Engine::audioEngine()->midiClient()->isRaw() )
 	{
-		m_assignableMidiDevices->addItems(friendlyReadablePorts);
+		m_assignableMidiDevices->addItems(Engine::audioEngine()->midiClient()->readablePorts());
 	}
 	else
 	{
 		m_assignableMidiDevices->addItem("all");
 	}
-
-	QString autoAssignDevice = ConfigManager::inst()->value("midi", "midiautoassign");
-	int current = MidiAlsaSeq::findDeviceIndex(readablePorts, autoAssignDevice);
+	int current = m_assignableMidiDevices->findText(ConfigManager::inst()->value("midi", "midiautoassign"));
 	if (current >= 0)
 	{
-		m_assignableMidiDevices->setCurrentIndex(current+1);
-	} else
-	{
-		m_assignableMidiDevices->addItem(QIcon(embed::getIconPixmap("error")), autoAssignDevice);
+		m_assignableMidiDevices->setCurrentIndex(current);
 	}
 
 	// MIDI Recording tab
@@ -990,8 +975,6 @@ void SetupDialog::accept()
 					QString::number(m_trackDeletionWarning));
 	ConfigManager::inst()->setValue("ui", "mixerchanneldeletionwarning",
 					QString::number(m_mixerChannelDeletionWarning));
-	ConfigManager::inst()->setValue("ui", "nativefiledialog",
-				QString::number(m_nativeFileDialog));
 	ConfigManager::inst()->setValue("app", "nommpz",
 					QString::number(!m_MMPZ));
 	ConfigManager::inst()->setValue("app", "disablebackup",
@@ -1027,7 +1010,7 @@ void SetupDialog::accept()
 	ConfigManager::inst()->setValue("audioengine", "mididev",
 					m_midiIfaceNames[m_midiInterfaces->currentText()]);
 	ConfigManager::inst()->setValue("midi", "midiautoassign",
-					Engine::audioEngine()->midiClient()->fromFriendly(m_assignableMidiDevices->currentText()));
+					m_assignableMidiDevices->currentText());
 	ConfigManager::inst()->setValue("midi", "autoquantize", QString::number(m_midiAutoQuantize));
 
 
@@ -1117,12 +1100,6 @@ void SetupDialog::toggleMixerChannelDeletionWarning(bool enabled)
 {
 	m_mixerChannelDeletionWarning = enabled;
 }
-
-void SetupDialog::toggleNativeFileDialog(bool enabled)
-{
-	m_nativeFileDialog = enabled;
-}
-
 
 
 void SetupDialog::toggleMMPZ(bool enabled)
