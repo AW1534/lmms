@@ -25,10 +25,6 @@
 
 #include "MidiPortMenu.h"
 
-#include <AudioEngine.h>
-#include <Engine.h>
-#include <MidiClient.h>
-
 namespace lmms::gui
 {
 
@@ -83,8 +79,6 @@ void MidiPortMenu::activatedPort( QAction * _item )
 
 void MidiPortMenu::updateMenu()
 {
-	MidiClient* midiClient = Engine::audioEngine()->midiClient();
-
 	auto mp = castModel<MidiPort>();
 	const MidiPort::Map & map = ( m_mode == MidiPort::Mode::Input ) ?
 				mp->readablePorts() : mp->writablePorts();
@@ -92,7 +86,7 @@ void MidiPortMenu::updateMenu()
 	for( MidiPort::Map::ConstIterator it = map.begin();
 							it != map.end(); ++it )
 	{
-		QAction * a = addAction(midiClient->toFriendly(it.key()));
+		QAction * a = addAction( it.key() );
 		a->setCheckable( true );
 		a->setChecked( it.value() );
 	}

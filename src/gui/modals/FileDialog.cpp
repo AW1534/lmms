@@ -44,12 +44,7 @@ FileDialog::FileDialog( QWidget *parent, const QString &caption,
 	setOption( QFileDialog::DontUseCustomDirectoryIcons );
 #endif
 
-
-
-	if (ConfigManager::inst()->value("ui", "nativefiledialog").toInt() != 1)
-	{
-		setOption( QFileDialog::DontUseNativeDialog );
-	}
+	setOption( QFileDialog::DontUseNativeDialog );
 
 #ifdef LMMS_BUILD_LINUX
 	QList<QUrl> urls;

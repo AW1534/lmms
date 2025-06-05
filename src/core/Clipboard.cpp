@@ -28,23 +28,20 @@
 #include <QClipboard>
 
 #include "FileBrowser.h"
+#include "PluginFactory.h"
 #include "SampleDecoder.h"
 #include "StringPairDrag.h"
 
 namespace lmms::Clipboard
 {
 
-	const QStringList projectExtensions{"mmp", "mpt", "mmpz"};
-	const QStringList presetExtensions{"xpf", "xml", "xiz", "lv2"};
-	const QStringList soundFontExtensions{"sf2", "sf3"};
-	const QStringList patchExtensions{"pat"};
-	const QStringList midiExtensions{"mid", "midi", "rmi"};
-	#ifdef LMMS_BUILD_WINDOWS
-	const QStringList vstPluginExtensions{"dll"};
-	#else
-	const QStringList vstPluginExtensions{"dll", "so"};
-	#endif
-	QStringList audioExtensions{};
+	static const QStringList projectExtensions{"mmp", "mpt", "mmpz"};
+	static const QStringList presetExtensions{"xpf", "xml", "xiz", "lv2"};
+	static const QStringList soundFontExtensions{"sf2", "sf3"};
+	static const QStringList patchExtensions{"pat"};
+	static const QStringList midiExtensions{"mid", "midi", "rmi"};
+	static QStringList vstPluginExtensions{};
+	static QStringList audioExtensions{};
 
 	//! gets the extension of a file, or returns the string back if no extension is found
 	inline QString getExtension(const QString& file)
@@ -53,11 +50,14 @@ namespace lmms::Clipboard
 		return parts.isEmpty() ? file.toLower() : parts.last().toLower();
 	}
 
-	//
-	/* @brief updates the lists of extensions. TODO: currently, this only applies for audioExtensions, but all the lists should be made
+	/* @brief updates the lists of extensions.
+	 * TODO: currently, this only applies for audioExtensions and vstPluginExtensions, but all the lists should be filled dynamically
 	 */
 	void updateExtensionLists()
 	{
+		vstPluginExtensions = QString(PluginFactory::instance()->pluginInfo("vestige").descriptor->supportedFileTypes).split(',');
+
+		audioExtensions.clear();
 		for (const SampleDecoder::AudioType& at : SampleDecoder::supportedAudioTypes())
 		{
 			audioExtensions += QString::fromStdString(at.extension);

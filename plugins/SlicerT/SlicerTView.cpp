@@ -25,6 +25,7 @@
 #include "SlicerTView.h"
 
 #include <QDropEvent>
+#include <QFileInfo>
 #include <qpixmap.h>
 #include <qpushbutton.h>
 
