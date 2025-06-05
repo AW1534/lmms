@@ -283,7 +283,7 @@ PianoRoll::PianoRoll() :
 			this, SLOT( updatePosition( const lmms::TimePos& ) ) );
 
 	// white position line follows timeline marker
-	m_positionLine = new PositionLine(this);
+	m_positionLine = new PositionLine(this, Song::PlayMode::MidiClip);
 
 	//update timeline when in step-recording mode
 	connect( &m_stepRecorderWidget, SIGNAL( positionChanged( const lmms::TimePos& ) ),
@@ -1300,6 +1300,7 @@ void PianoRoll::keyPressEvent(QKeyEvent* ke)
 			//  if a chord is set, play all chord notes (simulate click on all):
 			playChordNotes(key_num);
 			ke->accept();
+			return;
 		}
 	}
 
@@ -1536,6 +1537,7 @@ void PianoRoll::keyReleaseEvent(QKeyEvent* ke )
 			// if a chord is set, simulate click release on all chord notes
 			pauseChordNotes(key_num);
 			ke->accept();
+			return;
 		}
 	}
 
@@ -1559,6 +1561,9 @@ void PianoRoll::keyReleaseEvent(QKeyEvent* ke )
 			{
 				update();
 			}
+			break;
+		default:
+			ke->ignore();
 			break;
 	}
 
@@ -4233,8 +4238,10 @@ void PianoRoll::recordAccompany()
 		Engine::getSong()->playPattern();
 	}
 
-	m_timeLine->isRecoridng = true;
-	m_positionLine->isRecording = true;
+	auto* songEditor = GuiApplication::instance()->songEditor()->m_editor;
+
+	songEditor->timeLine->isRecoridng = true;
+	songEditor->positionLine->isRecording = true;
 	m_positionLine->update();
 }
 
@@ -4266,8 +4273,9 @@ bool PianoRoll::toggleStepRecording()
 
 	bool isRecording = m_stepRecorder.isRecording();
 
-	m_timeLine->isRecoridng = isRecording;
-	m_positionLine->isRecording = isRecording;
+	// hide playhead when step recording
+	m_timeLine->isPlayheadVisible = !isRecording;
+	m_positionLine->setVisible(!isRecording);
 	m_positionLine->update();
 
 	return isRecording;
@@ -4282,6 +4290,10 @@ void PianoRoll::stop()
 	m_recording = false;
 	m_scrollBack = m_timeLine->autoScroll() != TimeLineWidget::AutoScrollState::Disabled;
 
+	auto* songEditor = GuiApplication::instance()->songEditor()->m_editor;
+
+	songEditor->timeLine->isRecoridng = false;
+	songEditor->positionLine->isRecording = false;
 	m_timeLine->isRecoridng = false;
 	m_positionLine->isRecording = false;
 	m_positionLine->update();
