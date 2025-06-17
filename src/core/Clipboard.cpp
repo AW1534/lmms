@@ -26,7 +26,6 @@
 
 #include <QApplication>
 #include <QClipboard>
-#include <QDebug>
 
 #include "FileBrowser.h"
 #include "PluginFactory.h"
@@ -40,11 +39,12 @@ static std::map<std::string, std::vector<std::string>> mimetypes = {{"samplefile
 	{"presetfile", {"xpf", "xml", "xiz", "lv2"}}, {"midifile", {"mid", "midi", "rmi"}},
 	{"projectfile", {"mmp", "mpt", "mmpz"}}, {"patchfile", {"pat"}}, {"soundfontfile", {"sf2", "sf3"}}};
 
-//! gets the extension of a file, or returns the string back if no extension is found
+	//! gets the extension of a file, or returns the string back if no extension is found
 	inline QString getExtension(const QString& file)
 	{
-		const QStringList parts = file.split('.');
-		return parts.isEmpty() ? file.toLower() : parts.last().toLower();
+		QFileInfo fi(file);
+		const QString ext = fi.suffix().toLower();
+		return ext.isEmpty() ? file.toLower() : ext;
 	}
 
 	/* @brief updates the extension map.
@@ -62,7 +62,6 @@ static std::map<std::string, std::vector<std::string>> mimetypes = {{"samplefile
 			for (auto& fileType : QString(pluginInfo.descriptor->supportedFileTypes).split(","))
 			{
 				fileTypes.push_back(fileType.toStdString());
-				qDebug() << fileType;
 			}
 
 			mimetypes.insert_or_assign(mimetype, fileTypes);
@@ -85,9 +84,10 @@ static std::map<std::string, std::vector<std::string>> mimetypes = {{"samplefile
 	bool isMidiFile(const QString& ext)      { return isType(ext, "midifile"); }
 	bool isVstPluginFile(const QString& ext) { return isType(ext, "vstpluginfile"); }
 
+	//! Gets the clipboard mimedata. NOT the drag mimedata
 	const QMimeData* getMimeData()
 	{
-		return QApplication::clipboard()->mimeData( QClipboard::Clipboard );
+		return QApplication::clipboard()->mimeData(QClipboard::Clipboard);
 	}
 
 
@@ -149,19 +149,14 @@ static std::map<std::string, std::vector<std::string>> mimetypes = {{"samplefile
 		const QList<QUrl> urls = mimeData->urls();
 
 		QString type = decodeKey(mimeData);
-		QString value = decodeValue(mimeData);
+		QString value = !urls.isEmpty() ? urls.first().toLocalFile() : decodeValue(mimeData);
 
-		if (!urls.isEmpty())
-		{
-			value = urls.first().toLocalFile();
-		}
-
-		if (isAudioFile(value))			 { type = "samplefile"; }
+		if (isAudioFile(value)) { type = "samplefile"; }
 		else if (isVstPluginFile(value)) { type = "vstpluginfile"; }
-		else if (isPresetFile(value))    { type = "presetfile"; }
+		else if (isPresetFile(value)) { type = "presetfile"; }
 		else if (isMidiFile(value)) { type = "midifile"; }
-		else if (isProjectFile(value))   { type = "projectfile"; }
-		else if (isPatchFile(value))     { type = "patchfile"; }
+		else if (isProjectFile(value)) { type = "projectfile"; }
+		else if (isPatchFile(value)) { type = "patchfile"; }
 		else if (isSoundFontFile(value)) { type = "soundfontfile"; }
 
 		return {type, value};
