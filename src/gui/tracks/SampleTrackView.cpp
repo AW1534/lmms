@@ -187,26 +187,9 @@ void SampleTrackView::modelChanged()
 
 
 
-void SampleTrackView::dragEnterEvent(QDragEnterEvent* event)
+void SampleTrackView::dragEnterEvent(QDragEnterEvent* dee)
 {
-	const QMimeData* mime = event->mimeData();
-
-	if (mime->hasUrls())
-	{
-		const QList<QUrl> urls = mime->urls();
-		if (!urls.isEmpty())
-		{
-			QString path = urls.first().toLocalFile();
-			QString ext = QFileInfo(path).suffix().toLower();
-
-			if (Clipboard::isAudioFile(ext))
-			{
-				event->acceptProposedAction();
-				return;
-			}
-		}
-	}
-	event->ignore();
+	StringPairDrag::processDragEnterEvent(dee, {"samplefile"});
 }
 
 
