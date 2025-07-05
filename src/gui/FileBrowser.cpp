@@ -447,10 +447,11 @@ void FileBrowser::addItems(const QString & path )
 		QDir::LocaleAware | QDir::DirsFirst | QDir::Name | QDir::IgnoreCase);
 	for (const auto& entry : entries)
 	{
-		if (FileBrowser::excludedPaths().contains(entry.absoluteFilePath())) { continue; }
+		if (excludedPaths().contains(entry.absoluteFilePath())) { continue; }
+		if (entry.isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { continue; }
 
 		QString fileName = entry.fileName();
-		if (entry.isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) continue;
+
 		if (entry.isDir())
 		{
 			// Merge dir's together
@@ -462,6 +463,7 @@ void FileBrowser::addItems(const QString & path )
 				{
 					// insert before item, we're done
 					auto dd = new Directory(fileName, path, m_filter);
+					if (QFileInfo(dd->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete dd; break; }
 					m_fileBrowserTreeWidget->insertTopLevelItem(i,dd);
 					dd->update(); // add files to the directory
 					orphan = false;
@@ -474,6 +476,7 @@ void FileBrowser::addItems(const QString & path )
 					// then only add one tree widget for both
 					// so we don't add a new Directory - we just
 					// add the path to the current directory
+					if (QFileInfo(path).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { break; }
 					d->addDirectory(path);
 					d->update();
 					orphan = false;
@@ -485,6 +488,7 @@ void FileBrowser::addItems(const QString & path )
 				// it has not yet been added yet, so it's (lexically)
 				// larger than all other dirs => append it at the bottom
 				auto d = new Directory(fileName, path, m_filter);
+				if (QFileInfo(d->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete d; continue; }
 				d->update();
 				m_fileBrowserTreeWidget->addTopLevelItem(d);
 			}
