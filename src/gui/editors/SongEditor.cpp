@@ -94,40 +94,38 @@ SongEditor::SongEditor( Song * song ) :
 					 : DEFAULT_SETTINGS_WIDGET_WIDTH + TRACK_OP_WIDTH),
 	m_selectRegion(false)
 {
-	m_zoomingModel->setParent(this);
-	m_snappingModel->setParent(this);
-
-	timeLine = new TimeLineWidget(m_trackHeadWidth, 32, pixelsPerBar(),
+	// Set up timeline
+	m_timeLine = new TimeLineWidget(m_trackHeadWidth, 32, pixelsPerBar(),
 		m_song->getPlayPos(Song::PlayMode::Song),
 		m_song->getTimeline(Song::PlayMode::Song),
 		m_currentPosition, Song::PlayMode::Song, this
 	);
-	connect(this, &TrackContainerView::positionChanged, timeLine, &TimeLineWidget::updatePosition);
-	connect( timeLine, SIGNAL( positionChanged( const lmms::TimePos& ) ),
+	connect(this, &TrackContainerView::positionChanged, m_timeLine, &TimeLineWidget::updatePosition);
+	connect( m_timeLine, SIGNAL( positionChanged( const lmms::TimePos& ) ),
 			this, SLOT( updatePosition( const lmms::TimePos& ) ) );
-	connect( timeLine, SIGNAL(regionSelectedFromPixels(int,int)),
+	connect( m_timeLine, SIGNAL(regionSelectedFromPixels(int,int)),
 			this, SLOT(selectRegionFromPixels(int,int)));
-	connect( timeLine, SIGNAL(selectionFinished()),
+	connect( m_timeLine, SIGNAL(selectionFinished()),
 			 this, SLOT(stopRubberBand()));
 
 	// when tracks realign, adjust height of position line
 	connect(this, &TrackContainerView::tracksRealigned, this, &SongEditor::updatePositionLine);
 
-	positionLine = new PositionLine(this, Song::PlayMode::Song);
-	static_cast<QVBoxLayout *>( layout() )->insertWidget( 1, timeLine );
+	m_positionLine = new PositionLine(this, Song::PlayMode::Song);
+	static_cast<QVBoxLayout *>( layout() )->insertWidget( 1, m_timeLine );
 
 	connect( m_song, SIGNAL(playbackStateChanged()),
-			 positionLine, SLOT(update()));
+			 m_positionLine, SLOT(update()));
 
 	// When zoom changes, update position line
 	// But we must convert pixels per bar to a zoom factor where 1.0 is 100%
-	connect(this, &SongEditor::pixelsPerBarChanged, positionLine,
-		[this]() { positionLine->zoomChange(pixelsPerBar() / float(DEFAULT_PIXELS_PER_BAR)); });
+	connect(this, &SongEditor::pixelsPerBarChanged, m_positionLine,
+		[this]() { m_positionLine->zoomChange(pixelsPerBar() / float(DEFAULT_PIXELS_PER_BAR)); });
 
 	// Ensure loop markers snap to same increments as clips. Zoom & proportional
 	// snap changes are handled in zoomingChanged() and toggleProportionalSnap()
 	connect(m_snappingModel, &ComboBoxModel::dataChanged,
-		[this]() { timeLine->setSnapSize(getSnapSize()); });
+		[this]() { m_timeLine->setSnapSize(getSnapSize()); });
 
 
 	// add some essential widgets to global tool-bar
@@ -228,7 +226,7 @@ SongEditor::SongEditor( Song * song ) :
 
 	getGUI()->mainWindow()->addWidgetToToolBar( vc_w );
 
-	static_cast<QVBoxLayout *>( layout() )->insertWidget( 0, timeLine );
+	static_cast<QVBoxLayout *>( layout() )->insertWidget( 0, m_timeLine );
 
 	m_leftRightScroll = new QScrollBar( Qt::Horizontal, this );
 	m_leftRightScroll->setMinimum(0);
@@ -242,12 +240,17 @@ SongEditor::SongEditor( Song * song ) :
 			this, SLOT(updateScrollBar(int)));
 	connect(m_leftRightScroll, SIGNAL(valueChanged(int)),this, SLOT(updateRubberband()));
 	connect(contentWidget()->verticalScrollBar(), SIGNAL(valueChanged(int)),this, SLOT(updateRubberband()));
-	connect(timeLine, SIGNAL(selectionFinished()), this, SLOT(stopSelectRegion()));
+	connect(m_timeLine, SIGNAL(selectionFinished()), this, SLOT(stopSelectRegion()));
 
-	//zoom connects
+
+	// Set up zooming model
+	m_zoomingModel->setParent(this);
+	m_zoomingModel->setJournalling(false);
 	connect(m_zoomingModel, SIGNAL(dataChanged()), this, SLOT(zoomingChanged()));
 
+
 	// Set up snapping model
+	m_snappingModel->setParent(this);
 	for (float bars : SNAP_SIZES)
 	{
 		if (bars > 1.0f)
@@ -446,7 +449,7 @@ void SongEditor::setEditModeSelect()
 void SongEditor::toggleProportionalSnap()
 {
 	m_proportionalSnap = !m_proportionalSnap;
-	timeLine->setSnapSize(getSnapSize());
+	m_timeLine->setSnapSize(getSnapSize());
 
 	emit proportionalSnapChanged();
 }
@@ -542,7 +545,7 @@ void SongEditor::wheelEvent( QWheelEvent * we )
 		m_leftRightScroll->setValue(m_leftRightScroll->value() + tick - newTick);
 
 		// update timeline
-		timeLine->setPixelsPerBar(pixelsPerBar());
+		m_timeLine->setPixelsPerBar(pixelsPerBar());
 		// and make sure, all Clip's are resized and relocated
 		realignTracks();
 	}
@@ -768,7 +771,7 @@ void SongEditor::updatePosition( const TimePos & t )
 							- trackOpWidth
 							- contentWidget()->verticalScrollBar()->width(); // width of right scrollbar
 		
-		if (timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Stepped)
+		if (m_timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Stepped)
 		{
 			const auto nextPosition = m_currentPosition + w * TimePos::ticksPerBar() / pixelsPerBar();
 			if (t > nextPosition || t < m_currentPosition) 
@@ -776,22 +779,22 @@ void SongEditor::updatePosition( const TimePos & t )
 				animateScroll(m_leftRightScroll, t.getTicks(), m_smoothScroll);
 			}
 		}
-		else if (timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Continuous)
+		else if (m_timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Continuous)
 		{
 			m_leftRightScroll->setValue(std::max(t.getTicks() - w * TimePos::ticksPerBar() / pixelsPerBar() / 2, 0.0f));
 		}
 		m_scrollBack = false;
 	}
 
-	const int x = timeLine->markerX(t);
+	const int x = m_timeLine->markerX(t);
 	if( x >= trackOpWidth + widgetWidth -1 )
 	{
-		positionLine->show();
-		positionLine->move( x-( positionLine->width() - 1 ), timeLine->height() );
+		m_positionLine->show();
+		m_positionLine->move( x-( m_positionLine->width() - 1 ), m_timeLine->height() );
 	}
 	else
 	{
-		positionLine->hide();
+		m_positionLine->hide();
 	}
 
 	updatePositionLine();
@@ -802,7 +805,7 @@ void SongEditor::updatePosition( const TimePos & t )
 
 void SongEditor::updatePositionLine()
 {
-	positionLine->setFixedHeight(totalHeightOfTracks());
+	m_positionLine->setFixedHeight(totalHeightOfTracks());
 }
 
 
@@ -846,10 +849,10 @@ void SongEditor::zoomingChanged()
 	int ppb = calculatePixelsPerBar();
 	setPixelsPerBar(ppb);
 
-	timeLine->setPixelsPerBar(ppb);
+	m_timeLine->setPixelsPerBar(ppb);
 	realignTracks();
 	updateRubberband();
-	timeLine->setSnapSize(getSnapSize());
+	m_timeLine->setSnapSize(getSnapSize());
 
 	emit pixelsPerBarChanged(ppb);
 }
@@ -885,9 +888,9 @@ bool SongEditor::knifeMode() const
 
 int SongEditor::trackIndexFromSelectionPoint(int yPos)
 {
-	const TrackView * tv = trackViewAt(yPos - timeLine->height());
+	const TrackView * tv = trackViewAt(yPos - m_timeLine->height());
 	return tv ? indexOfTrackView(tv)
-			  : yPos < timeLine->height() ? 0
+			  : yPos < m_timeLine->height() ? 0
 											: trackViews().count();
 }
 
@@ -972,7 +975,7 @@ SongEditorWindow::SongEditorWindow(Song* song) :
 	editActionsToolBar->addAction( m_selectModeAction );
 
 	DropToolBar *timeLineToolBar = addDropToolBarToTop(tr("Timeline controls"));
-	m_editor->timeLine->addToolButtons(timeLineToolBar);
+	m_editor->m_timeLine->addToolButtons(timeLineToolBar);
 
 	DropToolBar *insertActionsToolBar = addDropToolBarToTop(tr("Bar insert controls"));
 	m_insertBarAction = new QAction(embed::getIconPixmap("insert_bar"), tr("Insert bar"), this);
@@ -1092,9 +1095,6 @@ void SongEditorWindow::play()
 void SongEditorWindow::record()
 {
 	m_editor->m_song->record();
-	m_editor->timeLine->isRecoridng = true;
-	m_editor->positionLine->isRecording = true;
-	m_editor->positionLine->update();
 }
 
 
@@ -1103,9 +1103,6 @@ void SongEditorWindow::record()
 void SongEditorWindow::recordAccompany()
 {
 	m_editor->m_song->playAndRecord();
-	m_editor->timeLine->isRecoridng = true;
-	m_editor->positionLine->isRecording = true;
-	m_editor->positionLine->update();
 }
 
 
@@ -1115,9 +1112,6 @@ void SongEditorWindow::stop()
 {
 	m_editor->m_song->stop();
 	getGUI()->pianoRoll()->stopRecording();
-	m_editor->timeLine->isRecoridng = false;
-	m_editor->positionLine->isRecording = false;
-	m_editor->positionLine->update();
 }
 
 
