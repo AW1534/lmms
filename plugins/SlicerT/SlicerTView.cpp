@@ -26,16 +26,19 @@
 
 #include <QDropEvent>
 #include <QFileInfo>
-#include <qpixmap.h>
-#include <qpushbutton.h>
+#include <QPainter>
+#include <QPushButton>
 
 #include "Clipboard.h"
+#include "ComboBox.h"
 #include "DataFile.h"
-#include "InstrumentTrack.h"
 #include "InstrumentView.h"
+#include "Knob.h"
+#include "LcdSpinBox.h"
 #include "PixmapButton.h"
 #include "SampleLoader.h"
 #include "SlicerT.h"
+#include "SlicerTWaveform.h"
 #include "StringPairDrag.h"
 #include "Track.h"
 #include "embed.h"

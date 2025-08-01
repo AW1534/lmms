@@ -26,15 +26,18 @@
 
 #include <QApplication>
 #include <QFileInfo>
+#include <QHBoxLayout>
 #include <QMenu>
+#include <QSpacerItem>
+#include <QVBoxLayout>
 
 #include "Clipboard.h"
 #include "ConfigManager.h"
 #include "embed.h"
 #include "Engine.h"
 #include "FadeButton.h"
-#include "FontHelper.h"
 #include "Mixer.h"
+#include "MixerChannelLcdSpinBox.h"
 #include "MixerView.h"
 #include "GuiApplication.h"
 #include "Knob.h"
