@@ -462,7 +462,6 @@ void FileBrowser::addItems(const QString & path )
 				{
 					// insert before item, we're done
 					auto dd = new Directory(fileName, path, m_filter);
-					if (QFileInfo(dd->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete dd; break; }
 					m_fileBrowserTreeWidget->insertTopLevelItem(i,dd);
 					dd->update(m_showHiddenContent); // add files to the directory
 					orphan = false;
@@ -475,7 +474,6 @@ void FileBrowser::addItems(const QString & path )
 					// then only add one tree widget for both
 					// so we don't add a new Directory - we just
 					// add the path to the current directory
-					if (QFileInfo(path).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { break; }
 					d->addDirectory(path);
 					d->update(m_showHiddenContent);
 					orphan = false;
@@ -487,14 +485,12 @@ void FileBrowser::addItems(const QString & path )
 				// it has not yet been added yet, so it's (lexically)
 				// larger than all other dirs => append it at the bottom
 				auto d = new Directory(fileName, path, m_filter);
-				if (QFileInfo(d->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete d; continue; }
 				d->update(m_showHiddenContent);
 				m_fileBrowserTreeWidget->addTopLevelItem(d);
 			}
 		}
 		else if (entry.isFile())
 		{
-			if (QFileInfo(entry.absoluteFilePath()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { continue; }
 			// TODO: don't insert instead of removing, order changed
 			// remove existing file-items
 			QList<QTreeWidgetItem *> existing = m_fileBrowserTreeWidget->findItems(fileName, Qt::MatchFixedString);
