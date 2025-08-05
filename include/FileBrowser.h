@@ -196,7 +196,7 @@ private slots:
 	void openInNewInstrumentTrack( lmms::gui::FileItem* item, bool songEditor );
 	bool openInNewSampleTrack( lmms::gui::FileItem* item );
 	void sendToActiveInstrumentTrack( lmms::gui::FileItem* item );
-	void updateDirectory( QTreeWidgetItem * item );
+	static void updateDirectory(QTreeWidgetItem* item, bool showHiddenContent);
 } ;
 
 
@@ -206,7 +206,7 @@ class Directory : public QTreeWidgetItem
 public:
 	Directory(const QString& filename, const QString& path, const QString& filter, bool disableEntryPopulation = false);
 
-	void update();
+	void update(bool showHidden);
 
 	inline QString fullName( QString path = QString() )
 	{

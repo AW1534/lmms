@@ -253,7 +253,7 @@ void FileBrowser::foundSearchMatch(FileSearch* search, const QString& match)
 
 				auto item = new Directory(pathPart, currentDir.path(), m_filter, disablePopulation);
 				currentItem ? currentItem->addChild(item) : m_searchTreeWidget->addTopLevelItem(item);
-				item->update();
+				item->update(m_showHiddenContent);
 				if (disablePopulation) { m_searchTreeWidget->expandItem(item); }
 				childItem = item;
 			}
@@ -361,7 +361,7 @@ void FileBrowser::reloadTree()
 			if (info.isDir())
 			{
 				auto dir = new Directory(info.fileName(), info.absolutePath(), m_filter);
-				dir->update();
+				dir->update(m_showHiddenContent);
 				m_fileBrowserTreeWidget->addTopLevelItem(dir);
 			}
 			else if (info.isFile())
@@ -464,7 +464,7 @@ void FileBrowser::addItems(const QString & path )
 					auto dd = new Directory(fileName, path, m_filter);
 					if (QFileInfo(dd->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete dd; break; }
 					m_fileBrowserTreeWidget->insertTopLevelItem(i,dd);
-					dd->update(); // add files to the directory
+					dd->update(m_showHiddenContent); // add files to the directory
 					orphan = false;
 					break;
 				}
@@ -477,7 +477,7 @@ void FileBrowser::addItems(const QString & path )
 					// add the path to the current directory
 					if (QFileInfo(path).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { break; }
 					d->addDirectory(path);
-					d->update();
+					d->update(m_showHiddenContent);
 					orphan = false;
 					break;
 				}
@@ -488,12 +488,13 @@ void FileBrowser::addItems(const QString & path )
 				// larger than all other dirs => append it at the bottom
 				auto d = new Directory(fileName, path, m_filter);
 				if (QFileInfo(d->fullName()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { delete d; continue; }
-				d->update();
+				d->update(m_showHiddenContent);
 				m_fileBrowserTreeWidget->addTopLevelItem(d);
 			}
 		}
 		else if (entry.isFile())
 		{
+			if (QFileInfo(entry.absoluteFilePath()).isHidden() && m_showHiddenContent && !m_showHiddenContent->isChecked()) { continue; }
 			// TODO: don't insert instead of removing, order changed
 			// remove existing file-items
 			QList<QTreeWidgetItem *> existing = m_fileBrowserTreeWidget->findItems(fileName, Qt::MatchFixedString);
@@ -1084,12 +1085,12 @@ void FileBrowserTreeWidget::sendToActiveInstrumentTrack( FileItem* item )
 
 
 
-void FileBrowserTreeWidget::updateDirectory(QTreeWidgetItem * item )
+void FileBrowserTreeWidget::updateDirectory(QTreeWidgetItem* item, bool showHiddenContent)
 {
 	auto dir = dynamic_cast<Directory*>(item);
 	if( dir != nullptr )
 	{
-		dir->update();
+		dir->update(showHiddenContent);
 	}
 }
 
@@ -1104,7 +1105,7 @@ Directory::Directory(const QString& filename, const QString& path, const QString
 	setChildIndicatorPolicy( QTreeWidgetItem::ShowIndicator );
 }
 
-void Directory::update()
+void Directory::update(bool showHidden = true)
 {
 	if( !isExpanded() )
 	{
