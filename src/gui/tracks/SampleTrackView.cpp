@@ -36,6 +36,7 @@
 #include "embed.h"
 #include "Engine.h"
 #include "FadeButton.h"
+#include "FontHelper.h"
 #include "Mixer.h"
 #include "MixerChannelLcdSpinBox.h"
 #include "MixerView.h"
