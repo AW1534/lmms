@@ -208,13 +208,11 @@ void PluginFactory::discoverPlugins()
 			pluginInfos << info;
 
 			auto addSupportedFileTypes =
-				[this](QString supportedFileTypes,
+				[this](QStringList supportedFileTypes,
 					const PluginInfo& info,
 					const Plugin::Descriptor::SubPluginFeatures::Key* key = nullptr)
 			{
-				if(!supportedFileTypes.isNull())
-				{
-					for (const QString& ext : supportedFileTypes.split(','))
+					for (const QString& ext : supportedFileTypes)
 					{
 						//qDebug() << "Plugin " << info.name()
 						//	<< "supports" << ext;
@@ -225,11 +223,12 @@ void PluginFactory::discoverPlugins()
 							: Plugin::Descriptor::SubPluginFeatures::Key();
 						m_pluginByExt.insert(ext, infoAndKey);
 					}
-				}
 			};
 
-			if (info.descriptor->supportedFileTypes)
-				addSupportedFileTypes(QString(info.descriptor->supportedFileTypes), info);
+			if (!info.descriptor->supportedFileTypes.isEmpty())
+			{
+				addSupportedFileTypes(info.descriptor->supportedFileTypes, info);
+			}
 
 			if (info.descriptor->subPluginFeatures)
 			{

@@ -79,16 +79,14 @@ Plugin::Descriptor Q_DECL_EXPORT  vestige_plugin_descriptor =
 	0x0100,
 	Plugin::Type::Instrument,
 	new PluginPixmapLoader( "logo" ),
-#if defined(LMMS_BUILD_WIN32)
-	"dll",
-#elif defined(LMMS_BUILD_LINUX)
-#	if defined(LMMS_HAVE_VST_32) || defined(LMMS_HAVE_VST_64)
-		"dll,so",
-#	else
-		"so",
-#	endif
+	{
+#if defined(LMMS_BUILD_WIN32) || defined(LMMS_HAVE_VST_32) || defined(LMMS_HAVE_VST_64)
+		"dll",
 #endif
-	"vstpluginfile",
+#if defined(LMMS_BUILD_LINUX)
+		"so",
+#endif
+	},
 	nullptr,
 } ;
 

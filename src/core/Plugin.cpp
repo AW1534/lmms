@@ -51,7 +51,7 @@ static Plugin::Descriptor dummyPluginDescriptor =
 	0x0100,
 	Plugin::Type::Undefined,
 	&dummyLoader,
-	nullptr,
+	{},
 	nullptr,
 } ;
 
@@ -115,14 +115,14 @@ const PixmapLoader* Plugin::logo() const
 
 
 
-QString Plugin::Descriptor::SubPluginFeatures::Key::additionalFileExtensions() const
+QStringList Plugin::Descriptor::SubPluginFeatures::Key::additionalFileExtensions() const
 {
 	Q_ASSERT(isValid());
 	return desc->subPluginFeatures
 		// get from sub plugin
 		? desc->subPluginFeatures->additionalFileExtensions(*this)
 		// no sub plugin, so no *additional* file extensions
-		: QString();
+		: QStringList{};
 }
 
 

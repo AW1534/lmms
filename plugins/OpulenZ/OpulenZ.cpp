@@ -74,9 +74,8 @@ Plugin::Descriptor PLUGIN_EXPORT opulenz_plugin_descriptor =
         0x0100,
         Plugin::Type::Instrument,
         new PluginPixmapLoader( "logo" ),
-        "sbi",
+        {"sbi"},
         nullptr,
-		nullptr,
 };
 
 // necessary for getting instance out of shared lib

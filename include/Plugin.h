@@ -97,12 +97,11 @@ public:
 		int version;
 		Type type;
 		const PixmapLoader* logo;
-		const char* supportedFileTypes; //!< csv list of extensions
-		const char* supportedMimetype; //!< mimetype supported by the plugin. Should be null if no filetypes are supported
+		const QStringList supportedFileTypes;
 
 		inline bool supportsFileType( const QString& extension ) const
 		{
-			return QString( supportedFileTypes ).split( QChar( ',' ) ).contains( extension );
+			return supportedFileTypes.contains(extension);
 		}
 
 		/**
@@ -172,7 +171,7 @@ public:
 
 				// helper functions to retrieve data that is
 				// not part of the key, but mapped via desc->subPluginFeatures
-				QString additionalFileExtensions() const;
+				QStringList additionalFileExtensions() const;
 				QString displayName() const;
 				QString description() const;
 				const PixmapLoader* logo() const;
@@ -204,9 +203,9 @@ public:
 			// The defaults are sane, i.e. redirect to sub plugin's
 			// supererior descriptor
 
-			virtual QString additionalFileExtensions(const Key&) const
+			virtual QStringList additionalFileExtensions(const Key&) const
 			{
-				return QString();
+				return {};
 			}
 
 			virtual QString displayName(const Key& k) const

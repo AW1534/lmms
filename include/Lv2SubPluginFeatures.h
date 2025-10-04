@@ -52,7 +52,7 @@ public:
 	void fillDescriptionWidget(
 		QWidget *parent, const Key *k) const override;
 
-	QString additionalFileExtensions(const Key &k) const override;
+	QStringList additionalFileExtensions(const Key &k) const override;
 	QString displayName(const Key &k) const override;
 	QString description(const Key &k) const override;
 	const PixmapLoader *logo(const Key &k) const override;

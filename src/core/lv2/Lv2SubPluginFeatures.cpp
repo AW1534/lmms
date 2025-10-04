@@ -191,13 +191,13 @@ void Lv2SubPluginFeatures::fillDescriptionWidget(QWidget* parent,
 
 
 
-QString Lv2SubPluginFeatures::additionalFileExtensions(
+QStringList Lv2SubPluginFeatures::additionalFileExtensions(
 	const Plugin::Descriptor::SubPluginFeatures::Key& k) const
 {
 	(void)k;
 	// lv2 only loads .lv2 files
 	// maybe add conversions later, e.g. for loading xmz
-	return QString();
+	return {};
 }
 
 

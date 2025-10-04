@@ -72,8 +72,7 @@ Plugin::Descriptor PLUGIN_EXPORT midiimport_plugin_descriptor =
 	0x0100,
 	Plugin::Type::ImportFilter,
 	nullptr,
-	nullptr,
-	nullptr,
+	{"mid", "midi", "rmi"},
 	nullptr,
 } ;
 

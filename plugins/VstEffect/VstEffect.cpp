@@ -51,8 +51,7 @@ Plugin::Descriptor PLUGIN_EXPORT vsteffect_plugin_descriptor =
 	0x0200,
 	Plugin::Type::Effect,
 	new PluginPixmapLoader("logo"),
-	nullptr,
-	nullptr,
+	"",
 	new VstSubPluginFeatures( Plugin::Type::Effect )
 } ;
 

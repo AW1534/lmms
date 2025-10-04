@@ -69,8 +69,7 @@ Plugin::Descriptor PLUGIN_EXPORT zynaddsubfx_plugin_descriptor =
 	0x0100,
 	Plugin::Type::Instrument,
 	new PluginPixmapLoader( "logo" ),
-	"xiz",
-	"pluginpresetfile",
+	{"xiz"},
 	nullptr,
 } ;
 
