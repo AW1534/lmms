@@ -994,10 +994,9 @@ void GigInstrumentView::updateFilename()
 {
 	auto i = castModel<GigInstrument>();
 	QFontMetrics fm( m_filenameLabel->font() );
-	QString file = i->m_filename.endsWith( ".gig", Qt::CaseInsensitive ) ?
-			i->m_filename.left( i->m_filename.length() - 4 ) :
-			i->m_filename;
+	QString file = QFileInfo(i->m_filename).completeBaseName();
 	m_filenameLabel->setText( fm.elidedText( file, Qt::ElideLeft, m_filenameLabel->width() ) );
+	m_filenameLabel->setToolTip(i->m_filename);
 
 	m_patchDialogButton->setEnabled( !i->m_filename.isEmpty() );
 
