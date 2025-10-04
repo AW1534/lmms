@@ -254,30 +254,6 @@ Lv2InsView::Lv2InsView(Lv2Instrument *_instrument, QWidget *_parent) :
 
 
 
-void Lv2InsView::dragEnterEvent(QDragEnterEvent *_dee)
-{
-	StringPairDrag::processDragEnterEvent(_dee, {"pluginpresetfile"});
-}
-
-
-
-
-void Lv2InsView::dropEvent(QDropEvent* _de)
-{
-	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
-
-	if (type == "pluginpresetfile")
-	{
-		castModel<Lv2Instrument>()->loadFile(value);
-		_de->accept();
-		return;
-	}
-	_de->ignore();
-}
-
-
-
-
 void Lv2InsView::hideEvent(QHideEvent *event)
 {
 	closeHelpWindow();

@@ -147,10 +147,6 @@ AudioFileProcessorView::AudioFileProcessorView(Instrument* instrument,
 	setAcceptDrops(true);
 }
 
-void AudioFileProcessorView::dragEnterEvent(QDragEnterEvent* dee)
-{
-	StringPairDrag::processDragEnterEvent(dee, {"samplefile"});
-}
 
 void AudioFileProcessorView::newWaveView()
 {
@@ -168,30 +164,6 @@ void AudioFileProcessorView::newWaveView()
 	m_waveView->show();
 }
 
-void AudioFileProcessorView::dropEvent(QDropEvent* de)
-{
-	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
-
-	if (type == "samplefile")
-	{
-		castModel<AudioFileProcessor>()->setAudioFile(value);
-	}
-
-	else if (type == QString("clip_%1").arg(static_cast<int>(Track::Type::Sample)))
-	{
-		DataFile dataFile(value.toUtf8());
-		castModel<AudioFileProcessor>()->setAudioFile(dataFile.content().firstChild().toElement().attribute("src"));
-	}
-	else
-	{
-		de->ignore();
-		return;
-	}
-
-	m_waveView->updateSampleRange();
-	Engine::getSong()->setModified();
-	de->accept();
-}
 
 void AudioFileProcessorView::paintEvent(QPaintEvent*)
 {

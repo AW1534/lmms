@@ -830,31 +830,6 @@ void VestigeInstrumentView::noteOffAll( void )
 
 
 
-void VestigeInstrumentView::dragEnterEvent(QDragEnterEvent* _dee)
-{
-	StringPairDrag::processDragEnterEvent(_dee, {"vstpluginfile"});
-}
-
-
-
-
-void VestigeInstrumentView::dropEvent(QDropEvent* _de)
-{
-	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
-
-	if (type == "vstpluginfile")
-	{
-		m_vi->loadFile(value);
-		_de->accept();
-		return;
-	}
-
-	_de->ignore();
-}
-
-
-
-
 void VestigeInstrumentView::paintEvent( QPaintEvent * )
 {
 	QPainter p( this );
@@ -1166,48 +1141,6 @@ void ManageVestigeInstrumentView::syncParameterText()
 	{
 		vstKnobs[i]->setValueText(paramDisplayList[i] + ' ' + paramLabelList[i]);
 	}
-}
-
-
-
-void ManageVestigeInstrumentView::dragEnterEvent( QDragEnterEvent * _dee )
-{
-	// For mimeType() and MimeType enum class
-	using namespace Clipboard;
-
-	if( _dee->mimeData()->hasFormat( mimeType( MimeType::StringPair ) ) )
-	{
-		QString txt = _dee->mimeData()->data(
-						mimeType( MimeType::StringPair ) );
-		if( txt.section( ':', 0, 0 ) == "vstplugin" )
-		{
-			_dee->acceptProposedAction();
-		}
-		else
-		{
-			_dee->ignore();
-		}
-	}
-	else
-	{
-		_dee->ignore();
-	}
-}
-
-
-
-
-void ManageVestigeInstrumentView::dropEvent( QDropEvent * _de )
-{
-	QString type = StringPairDrag::decodeKey( _de );
-	QString value = StringPairDrag::decodeValue( _de );
-	if( type == "vstplugin" )
-	{
-		m_vi->loadFile( value );
-		_de->accept();
-		return;
-	}
-	_de->ignore();
 }
 
 
