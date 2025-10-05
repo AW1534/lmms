@@ -101,7 +101,19 @@ public:
 
 		inline bool supportsFileType( const QString& extension ) const
 		{
-			return supportedFileTypes.contains(extension);
+			if (supportedFileTypes.contains(extension)) { return true; }
+
+			if (subPluginFeatures)
+			{
+				Plugin::Descriptor::SubPluginFeatures::KeyList subPluginKeys;
+				subPluginFeatures->listSubPluginKeys(this, subPluginKeys);
+
+				for (const auto& key : subPluginKeys)
+				{
+					if (key.additionalFileExtensions().contains(extension)) { return true; }
+				}
+			}
+			return false;
 		}
 
 		/**
