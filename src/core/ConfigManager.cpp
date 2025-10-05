@@ -32,6 +32,7 @@
 #include <QStandardPaths>
 #include <QTextStream>
 
+#include "FileTypes.h"
 #include "GuiApplication.h"
 #include "MainWindow.h"
 #include "ProjectVersion.h"
@@ -317,10 +318,7 @@ void ConfigManager::createWorkingDir()
 
 void ConfigManager::addRecentlyOpenedProject(const QString & file)
 {
-	QFileInfo recentFile(file);
-	if(recentFile.suffix().toLower() == "mmp" ||
-		recentFile.suffix().toLower() == "mmpz" ||
-		recentFile.suffix().toLower() == "mpt")
+	if (FileTypes::matchPath({FileType::Project}, file))
 	{
 		m_recentlyOpenedProjects.removeAll(file);
 		if(m_recentlyOpenedProjects.size() > 50)
