@@ -45,6 +45,7 @@
 #include <QVBoxLayout>
 
 #include "AutomatableModelView.h"
+#include "Clipboard.h"
 #include "PianoView.h"
 #include "Piano.h"
 #include "CaptionMenu.h"
@@ -52,7 +53,6 @@
 #include "FontHelper.h"
 #include "InstrumentTrack.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 
 
 namespace lmms::gui
@@ -447,7 +447,7 @@ void PianoView::mousePressEvent(QMouseEvent *me)
 
 			if (me->modifiers() & Qt::ControlModifier)
 			{
-				new StringPairDrag("automatable_model",	QString::number(m_movedNoteModel->id()), QPixmap(), this);
+				DragAndDrop::execStringPairDrag("automatable_model", QString::number(m_movedNoteModel->id()), QPixmap(), this);
 				me->accept();
 			}
 			else

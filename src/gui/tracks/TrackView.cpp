@@ -38,7 +38,6 @@
 #include "DataFile.h"
 #include "Engine.h"
 #include "FadeButton.h"
-#include "StringPairDrag.h"
 #include "Track.h"
 #include "TrackContainerView.h"
 #include "TrackGrip.h"
@@ -208,7 +207,7 @@ void TrackView::modelChanged()
  */
 void TrackView::dragEnterEvent( QDragEnterEvent * dee )
 {
-	StringPairDrag::processDragEnterEvent(dee, {
+	DragAndDrop::acceptStringPair(dee, {
 		QString("track_%1").arg(static_cast<int>(m_track->type()))
 	});
 }
@@ -223,7 +222,7 @@ void TrackView::dragEnterEvent( QDragEnterEvent * dee )
  */
 void TrackView::dropEvent(QDropEvent* de)
 {
-	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
+	const auto [type, value] = DragAndDrop::getStringPair(de);
 
 	if( type == ( "track_" + QString::number( static_cast<int>(m_track->type()) ) ) )
 	{

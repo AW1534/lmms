@@ -30,11 +30,11 @@
 #include <QMenu>
 
 #include "AutomationEditor.h"
+#include "Clipboard.h"
 #include "embed.h"
 #include "GuiApplication.h"
 #include "ProjectJournal.h"
 #include "RenameDialog.h"
-#include "StringPairDrag.h"
 #include "TextFloat.h"
 #include "Track.h"
 #include "TrackContainerView.h"
@@ -410,7 +410,7 @@ void AutomationClipView::paintEvent( QPaintEvent * )
 
 void AutomationClipView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent( _dee, {"automatable_model"});
+	DragAndDrop::acceptStringPair( _dee, {"automatable_model"});
 	if( !_dee->isAccepted() )
 	{
 		ClipView::dragEnterEvent( _dee );
@@ -422,8 +422,8 @@ void AutomationClipView::dragEnterEvent( QDragEnterEvent * _dee )
 
 void AutomationClipView::dropEvent( QDropEvent * _de )
 {
-	QString type = StringPairDrag::decodeKey( _de );
-	QString val = StringPairDrag::decodeValue( _de );
+	const auto [type, val] = DragAndDrop::getStringPair(_de);
+
 	if( type == "automatable_model" )
 	{
 		auto mod = dynamic_cast<AutomatableModel*>(Engine::projectJournal()->journallingObject(val.toInt()));

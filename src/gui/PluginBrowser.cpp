@@ -33,11 +33,11 @@
 #include <QStyleOption>
 #include <QTreeWidget>
 
+#include "Clipboard.h"
 #include "embed.h"
 #include "Engine.h"
 #include "InstrumentTrack.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "PluginFactory.h"
 
@@ -285,7 +285,7 @@ void PluginDescWidget::mousePressEvent( QMouseEvent * _me )
 	Engine::setDndPluginKey(&m_pluginKey);
 	if ( _me->button() == Qt::LeftButton )
 	{
-		new StringPairDrag("instrument",
+		DragAndDrop::execStringPairDrag("instrument",
 			QString::fromUtf8(m_pluginKey.desc->name), m_logo, this);
 		leaveEvent( _me );
 	}

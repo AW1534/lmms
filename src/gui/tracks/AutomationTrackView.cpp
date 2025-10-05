@@ -30,7 +30,6 @@
 #include "Clipboard.h"
 #include "Engine.h"
 #include "ProjectJournal.h"
-#include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "TrackLabelButton.h"
 #include "embed.h"
@@ -51,7 +50,7 @@ AutomationTrackView::AutomationTrackView( AutomationTrack * _at, TrackContainerV
 
 void AutomationTrackView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent(_dee, {"automatable_model"});
+	DragAndDrop::acceptStringPair(_dee, {"automatable_model"});
 }
 
 
@@ -59,7 +58,7 @@ void AutomationTrackView::dragEnterEvent( QDragEnterEvent * _dee )
 
 void AutomationTrackView::dropEvent( QDropEvent * _de )
 {
-	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
+	const auto [type, value] = DragAndDrop::getStringPair(_de);
 
 	if( type == "automatable_model" )
 	{

@@ -98,7 +98,6 @@ PluginFactory* PluginFactory::instance()
 	if (s_instance == nullptr)
 	{
 		s_instance = std::make_unique<PluginFactory>();
-		Clipboard::updateExtensionMap();
 	}
 
 	return s_instance.get();

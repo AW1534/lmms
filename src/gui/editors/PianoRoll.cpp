@@ -4543,7 +4543,7 @@ void PianoRoll::copyToClipboard( const NoteVector & notes ) const
 		clip_note.saveState( dataFile, note_list );
 	}
 
-	copyString( dataFile.toString(), MimeType::Default );
+	copyString(dataFile.toString(), MimeType::DataFile);
 }
 
 
@@ -4604,7 +4604,7 @@ void PianoRoll::pasteNotes()
 		return;
 	}
 
-	QString value = getString( MimeType::Default );
+	QString value = getString( MimeType::DataFile );
 
 	if( ! value.isEmpty() )
 	{

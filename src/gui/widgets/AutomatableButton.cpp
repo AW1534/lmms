@@ -28,7 +28,7 @@
 #include <QMouseEvent>
 
 #include "CaptionMenu.h"
-#include "StringPairDrag.h"
+#include "Clipboard.h"
 #include "KeyboardShortcuts.h"
 
 
@@ -128,7 +128,7 @@ void AutomatableButton::mousePressEvent( QMouseEvent * _me )
 		{
 			// A group, we must get process it instead
 			auto groupView = (AutomatableModelView*)m_group;
-			new StringPairDrag( "automatable_model",
+			DragAndDrop::execStringPairDrag("automatable_model",
 					QString::number( groupView->modelUntyped()->id() ),
 					QPixmap(), widget() );
 			// TODO: ^^ Maybe use a predefined icon instead of the button they happened to select

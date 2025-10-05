@@ -33,7 +33,6 @@
 #include "GuiApplication.h"
 #include "KeyboardShortcuts.h"
 #include "MainWindow.h"
-#include "StringPairDrag.h"
 #include "Clipboard.h"
 
 #include "AutomationEditor.h"
@@ -174,7 +173,7 @@ void AutomatableModelView::mousePressEvent( QMouseEvent* event )
 {
 	if (event->button() == Qt::LeftButton && event->modifiers() & KBD_COPY_MODIFIER)
 	{
-		new gui::StringPairDrag( "automatable_model", QString::number( modelUntyped()->id() ), QPixmap(), widget() );
+		DragAndDrop::execStringPairDrag("automatable_model", QString::number( modelUntyped()->id() ), QPixmap(), widget() );
 		event->accept();
 	}
 	else if( event->button() == Qt::MiddleButton )
@@ -283,10 +282,7 @@ void AutomatableModelViewSlots::unlinkAllModels()
 
 void AutomatableModelViewSlots::copyToClipboard()
 {
-	// For copyString() and MimeType enum class
-	using namespace Clipboard;
-
-	copyString( QString::number( m_amv->value<float>() * m_amv->getConversionFactor() ), MimeType::Default );
+	Clipboard::copyString(QString::number(m_amv->value<float>() * m_amv->getConversionFactor()));
 }
 
 void AutomatableModelViewSlots::pasteFromClipboard()
@@ -301,10 +297,7 @@ void AutomatableModelViewSlots::pasteFromClipboard()
 /// Attempt to parse a float from the clipboard
 static float floatFromClipboard(bool* ok)
 {
-	// For getString() and MimeType enum class
-	using namespace Clipboard;
-
-	return getString( MimeType::Default ).toFloat(ok);
+	return Clipboard::getString().toFloat(ok);
 }
 
 

@@ -27,84 +27,92 @@
 
 #include <QDomElement>
 #include <QDropEvent>
+#include <QPixmap>
 
+#include "FileTypes.h"
 #include "lmms_export.h"
 
 
-namespace lmms::gui
+class QMimeData;
+
+
+namespace lmms
 {
-	class FileItem;
+	enum class MimeType
+	{
+		StringPair, //!< string like key:value, only visible to LMMS instances
+		DataFile, //!< DataFile XML, only visible to LMMS instances
+		PlainText,
+	};
 }
 
-class QMimeData;
 
 namespace lmms::Clipboard
 {
-	void updateExtensionMap();
-
-	bool isType(const QString& ext, const QString& mimetype);
-	bool isAudioFile(const QString& ext);
-	bool isProjectFile(const QString& ext);
-	bool isPluginPresetFile(const QString& ext);
-	bool isTrackPresetFile(const QString& ext);
-	bool isSoundFontFile(const QString& ext);
-	bool isPatchFile(const QString& ext);
-	bool isMidiFile(const QString& ext);
-	bool isVstPluginFile(const QString& ext);
-
-
-	enum class MimeType
-	{
-		StringPair,
-		Default
-	};
-
 	// Convenience Methods
+	void copyMimeData(QMimeData* m);
 	const QMimeData * getMimeData();
 	bool hasFormat( MimeType mT );
 
 	// Helper methods for String data
-	void LMMS_EXPORT copyString(const QString& str, MimeType mT);
-	QString getString( MimeType mT );
+	void LMMS_EXPORT copyString(const QString& str, MimeType mT = MimeType::PlainText);
+	QString getString(MimeType mT = MimeType::PlainText);
 
+} // namespace lmms::Clipboard
+
+
+namespace lmms::MimeData
+{
 	// Helper methods for String Pair data
-	void copyStringPair( const QString & key, const QString & value );
-	QString decodeKey( const QMimeData * mimeData );
-	QString decodeValue( const QMimeData * mimeData );
+	QMimeData* fromStringPair(const QString& key, const QString& value);
+	std::pair<QString, QString> toStringPair(const QMimeData* md);
+} // namespace lmms::MimeData
 
-	/**
-	 * @brief Extracts and classifies drag-and-drop data from a QDropEvent.
-	 *
-	 * This function inspects a drop event to determine the type of file or action being dropped
-	 * and retrieves the associated value (typically a file path or an ID). If the event contains URLs,
-	 * it uses the first URL to determine the file extension and classifies the type accordingly,
-	 * such as "samplefile", "trackpresetfile", "vstpluginfile", etc.
-	 *
-	 * The function also uses fallback decoding via StringPairDrag in case the type and value
-	 * were encoded in a non-file-based drag operation.
-	 *
-	 * @param _de Pointer to the QDropEvent containing drag-and-drop data.
-	 * @return A std::pair where:
-	 *         - first is a QString representing the inferred type (e.g., "trackpresetfile", "midifile").
-	 *         - second is the QString value (e.g., file path or identifier).
-	 */
-	LMMS_EXPORT std::pair<QString, QString> decodeMimeData(const QMimeData* mimeData);
-	void startFileDrag(gui::FileItem* file, QObject* qo);
 
+namespace lmms::DragAndDrop
+{
+	void exec(QWidget* widget, QMimeData* md, const QPixmap& icon = {});
+	void execStringPairDrag(const QString& key, const QString& value, const QPixmap& icon, QWidget* widget);
+
+	//! Accept drag enter event if it contains a file of allowed type
+	bool acceptFile(QDragEnterEvent* dee, const std::initializer_list<FileType> allowedTypes);
+	//! Accept drag enter event if it contains a string pair of allowed type
+	bool acceptStringPair(QDragEnterEvent* dee, const std::initializer_list<QString> allowedKeys);
+
+	inline std::pair<QString, QString> getStringPair(const QDropEvent* de)
+	{
+		return MimeData::toStringPair(de->mimeData());
+	}
+
+	//! Get file path from drop event (empty if it doesn't match allowedType)
+	LMMS_EXPORT QString getFile(const QDropEvent* de, FileType allowedType);
+	//! Get file path and type from drop event
+	LMMS_EXPORT std::pair<QString, FileType> getFileAndType(const QDropEvent* de);
+	//! Get file path and suffix (not including dot) from drop event
+	LMMS_EXPORT std::pair<QString, QString> getFileAndExt(const QDropEvent* de);
+
+
+} // namespace lmms::DragAndDrop
+
+
+namespace lmms
+{
+	// TODO move to another namespace, maybe an anonymous one in Clipboard.cpp
 	inline const char * mimeType( MimeType type )
 	{
 		switch( type )
 		{
+			case MimeType::PlainText:
+				return "text/plain";
 			case MimeType::StringPair:
 				return "application/x-lmms-stringpair";
 			break;
-			case MimeType::Default:
+			case MimeType::DataFile:
 			default:
 				return "application/x-lmms-clipboard";
 				break;
 		}
 	}
-
-} // namespace lmms::Clipboard
+} // namespace lmms
 
 #endif // LMMS_CLIPBOARD_H

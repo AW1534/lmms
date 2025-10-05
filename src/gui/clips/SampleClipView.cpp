@@ -26,17 +26,18 @@
 
 #include <QApplication>
 #include <QMenu>
+#include <QMimeData>
 #include <QPainter>
 
 #include "AutomationEditor.h"
 #include "Clipboard.h"
 #include "GuiApplication.h"
+#include "FileTypes.h"
 #include "PathUtil.h"
 #include "SampleClip.h"
 #include "SampleLoader.h"
 #include "SampleThumbnail.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "TrackView.h"
 #include "embed.h"
@@ -108,16 +109,19 @@ void SampleClipView::constructContextMenu(QMenu* cm)
 
 void SampleClipView::dragEnterEvent(QDragEnterEvent* _dee)
 {
-	StringPairDrag::processDragEnterEvent(_dee, {"samplefile", "sampledata"});
+	if (DragAndDrop::acceptStringPair(_dee, {"sampledata"})) { return; }
+	if (DragAndDrop::acceptFile(_dee, {FileType::Sample})) { return; }
+	ClipView::dragEnterEvent(_dee);
 }
 
 void SampleClipView::dropEvent(QDropEvent* _de )
 {
-	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
+	const auto [type, value] = DragAndDrop::getStringPair(_de);
+	const auto path = DragAndDrop::getFile(_de, FileType::Sample);
 
-	if (type == "samplefile")
+	if (!path.isEmpty())
 	{
-		m_clip->setSampleFile(value);
+		m_clip->setSampleFile(path);
 		_de->accept();
 	}
 	else if (type == "sampledata")

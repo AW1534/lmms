@@ -31,6 +31,7 @@
 
 #include "lmms_math.h"
 #include "CaptionMenu.h"
+#include "Clipboard.h"
 #include "ControllerConnection.h"
 #include "GuiApplication.h"
 #include "KeyboardShortcuts.h"
@@ -38,7 +39,6 @@
 #include "MainWindow.h"
 #include "ProjectJournal.h"
 #include "SimpleTextFloat.h"
-#include "StringPairDrag.h"
 
 
 namespace lmms::gui
@@ -127,15 +127,15 @@ void FloatModelEditorBase::toggleScale()
 
 void FloatModelEditorBase::dragEnterEvent(QDragEnterEvent * dee)
 {
-	StringPairDrag::processDragEnterEvent(dee, {"float_value",
+	DragAndDrop::acceptStringPair(dee, {"float_value",
 							"automatable_model"});
 }
 
 
 void FloatModelEditorBase::dropEvent(QDropEvent * de)
 {
-	QString type = StringPairDrag::decodeKey(de);
-	QString val = StringPairDrag::decodeValue(de);
+	const auto [type, val] = DragAndDrop::getStringPair(de);
+
 	if (type == "float_value")
 	{
 		model()->setValue(LocaleHelper::toFloat(val));
@@ -183,7 +183,7 @@ void FloatModelEditorBase::mousePressEvent(QMouseEvent * me)
 	else if (me->button() == Qt::LeftButton &&
 			(me->modifiers() & Qt::ShiftModifier))
 	{
-		new StringPairDrag("float_value",
+		DragAndDrop::execStringPairDrag("float_value",
 					QString::number(model()->value()),
 							QPixmap(), this);
 	}

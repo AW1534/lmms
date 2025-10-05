@@ -35,6 +35,7 @@
 #include "AutomatableButton.h"
 #include "AutomationClip.h"
 #include "AutomationTrackView.h"
+#include "Clipboard.h"
 #include "ColorChooser.h"
 #include "ConfigManager.h"
 #include "DataFile.h"
@@ -43,7 +44,6 @@
 #include "InstrumentTrackView.h"
 #include "KeyboardShortcuts.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "Track.h"
 #include "TrackContainerView.h"
 #include "TrackGrip.h"
@@ -135,7 +135,7 @@ void TrackOperationsWidget::mousePressEvent( QMouseEvent * me )
 	{
 		DataFile dataFile( DataFile::Type::DragNDropData );
 		m_trackView->getTrack()->saveState( dataFile, dataFile.content() );
-		new StringPairDrag( QString( "track_%1" ).arg(
+		DragAndDrop::execStringPairDrag( QString( "track_%1" ).arg(
 					static_cast<int>(m_trackView->getTrack()->type()) ),
 			dataFile.toString(), m_trackView->getTrackSettingsWidget()->grab(),
 									this );

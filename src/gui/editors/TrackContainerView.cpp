@@ -32,6 +32,7 @@
 #include "Clipboard.h"
 #include "DataFile.h"
 #include "FileBrowser.h"
+#include "FileTypes.h"
 #include "GuiApplication.h"
 #include "ImportFilter.h"
 #include "Instrument.h"
@@ -40,7 +41,6 @@
 #include "PatternTrack.h"
 #include "PluginFactory.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "TrackContainer.h"
 #include "TrackView.h"
 
@@ -369,9 +369,20 @@ void TrackContainerView::clearAllTracks()
 
 void TrackContainerView::dragEnterEvent( QDragEnterEvent * _dee )
 {
-	StringPairDrag::processDragEnterEvent(_dee, {"trackpresetfile", "pluginpresetfile", "samplefile", "instrument",
-				"midifile", "soundfontfile","patchfile","vstpluginfile","projectfile",
-				QString("track_%1").arg(static_cast<int>(Track::Type::Instrument)), QString("track_%1").arg(static_cast<int>(Track::Type::Sample))});
+	DragAndDrop::acceptStringPair(_dee, {
+		"instrument",
+		QString("track_%1").arg(static_cast<int>(Track::Type::Instrument)),
+		QString("track_%1").arg(static_cast<int>(Track::Type::Sample))
+	});
+
+	DragAndDrop::acceptFile(_dee, {
+		FileType::Project,
+		FileType::ProjectTemplate,
+		FileType::InstrumentPreset,
+		FileType::InstrumentAsset,
+		FileType::Sample,
+		FileType::ImportableProject,
+	});
 }
 
 
@@ -388,7 +399,8 @@ void TrackContainerView::stopRubberBand()
 
 void TrackContainerView::dropEvent(QDropEvent* _de)
 {
-	const auto [type, value] = Clipboard::decodeMimeData(_de->mimeData());
+	const auto [type, value] = DragAndDrop::getStringPair(_de);
+	const auto [path, fileType] = DragAndDrop::getFileAndType(_de);
 
 	if (type == "instrument")
 	{
@@ -398,49 +410,37 @@ void TrackContainerView::dropEvent(QDropEvent* _de)
 		// it->toggledInstrumentTrackButton(true);
 		_de->accept();
 	}
-	else if (type == "samplefile" || type == "pluginpresetfile"
-		|| type == "soundfontfile" || type == "vstpluginfile"
-		|| type == "patchfile" )
+	else if (fileType == FileType::Sample || fileType == FileType::InstrumentAsset)
 	{
 		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
 		PluginFactory::PluginInfoAndKey piakn =
-			getPluginFactory()->pluginSupportingExtension(FileItem::extension(value));
+			getPluginFactory()->pluginSupportingExtension(FileItem::extension(path));
 
 		Instrument * i = it->loadInstrument(piakn.info.name(), &piakn.key);
-		i->loadFile( value );
+		i->loadFile(path);
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if (type == "trackpresetfile")
+	else if (fileType == FileType::InstrumentPreset)
 	{
-		QString ext = QFileInfo(value).suffix().toLower();
-
-		DataFile dataFile(value);
-		if (!dataFile.validate(ext))
-		{
-			QMessageBox::warning(0, tr ("Error"),
-				tr("%1 does not appear to be a valid %2 file")
-				.arg(value, ext),
-				QMessageBox::Ok, QMessageBox::NoButton);
-			return;
-		}
+		DataFile dataFile(path);
 		auto it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, m_tc));
 		it->loadPreset(dataFile.content().toElement());
 
 		//it->toggledInstrumentTrackButton( true );
 		_de->accept();
 	}
-	else if (type == "midifile")
+	else if (fileType == FileType::ImportableProject)
 	{
-		ImportFilter::import( value, m_tc );
+		ImportFilter::import(path, m_tc);
 		_de->accept();
 	}
 
-	else if (type == "projectfile")
+	else if (fileType == FileType::Project || fileType == FileType::ProjectTemplate)
 	{
 		if (getGUI()->mainWindow()->mayChangeProject(true))
 		{
-			Engine::getSong()->loadProject( value );
+			Engine::getSong()->loadProject(path);
 		}
 		_de->accept();
 	}

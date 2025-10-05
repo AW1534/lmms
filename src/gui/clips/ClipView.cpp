@@ -44,7 +44,6 @@
 #include "PatternStore.h"
 #include "Song.h"
 #include "SongEditor.h"
-#include "StringPairDrag.h"
 #include "TextFloat.h"
 #include "TrackContainer.h"
 #include "TrackContainerView.h"
@@ -441,7 +440,7 @@ void ClipView::dragEnterEvent( QDragEnterEvent * dee )
  */
 void ClipView::dropEvent(QDropEvent* de)
 {
-	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
+	const auto [type, value] = DragAndDrop::getStringPair(de);
 
 	// Track must be the same type to paste into
 	if (type != clipTypeString())
@@ -800,41 +799,22 @@ void ClipView::mouseMoveEvent( QMouseEvent * me )
 	{
 		if( mouseMovedDistance( me, 2 ) == true )
 		{
-			QVector<ClipView *> clipViews;
-			if( m_action == Action::CopySelection )
-			{
-				// Collect all selected Clips
-				QVector<selectableObject *> so =
-					m_trackView->trackContainerView()->selectedObjects();
-				for (const auto& selectedClip : so)
-				{
-					auto clipv = dynamic_cast<ClipView*>(selectedClip);
-					if( clipv != nullptr )
-					{
-						clipViews.push_back( clipv );
-					}
-				}
-			}
-			else
+			if (!isSelected())
 			{
 				getGUI()->songEditor()->m_editor->selectAllClips( false );
-				clipViews.push_back( this );
 			}
 			// Clear the action here because mouseReleaseEvent will not get
 			// triggered once we go into drag.
 			m_action = Action::None;
-
-			// Write the Clips to the DataFile for copying
-			DataFile dataFile = createClipDataFiles( clipViews );
 
 			// TODO -- thumbnail for all selected
 			QPixmap thumbnail = grab().scaled(
 				128, 128,
 				Qt::KeepAspectRatio,
 				Qt::SmoothTransformation );
-			new StringPairDrag( QString( "clip_%1" ).arg(
-								static_cast<int>(m_clip->getTrack()->type()) ),
-								dataFile.toString(), thumbnail, this );
+
+			DragAndDrop::exec(this, createClipboardData(), thumbnail);
+
 		}
 	}
 
@@ -1206,15 +1186,7 @@ void ClipView::remove( QVector<ClipView *> clipvs )
 
 void ClipView::copy( QVector<ClipView *> clipvs )
 {
-	// For copyStringPair()
-	using namespace Clipboard;
-
-	// Write the Clips to a DataFile for copying
-	DataFile dataFile = createClipDataFiles( clipvs );
-
-	// Copy the Clip type as a key and the Clip data file to the clipboard
-	copyStringPair( QString( "clip_%1" ).arg( static_cast<int>(m_clip->getTrack()->type()) ),
-		dataFile.toString() );
+	Clipboard::copyMimeData(createClipboardData());
 }
 
 void ClipView::cut( QVector<ClipView *> clipvs )

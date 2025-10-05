@@ -41,6 +41,7 @@
 
 
 #include "AudioEngine.h"
+#include "Clipboard.h"
 #include "ConfigManager.h"
 #include "CustomTextKnob.h"
 #include "Engine.h"
@@ -54,7 +55,6 @@
 #include "PathUtil.h"
 #include "PixmapButton.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "SubWindow.h"
 #include "TextFloat.h"
 #include "Clipboard.h"

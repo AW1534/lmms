@@ -44,6 +44,7 @@
 
 #include "ActionGroup.h"
 #include "AutomationNode.h"
+#include "Clipboard.h"
 #include "ComboBox.h"
 #include "DeprecationHelper.h"
 #include "DetuningHelper.h"
@@ -55,7 +56,6 @@
 #include "PatternStore.h"
 #include "PianoRoll.h"
 #include "ProjectJournal.h"
-#include "StringPairDrag.h"
 #include "TextFloat.h"
 #include "TimeLineWidget.h"
 #include "embed.h"
@@ -2261,8 +2261,8 @@ const AutomationClip* AutomationEditorWindow::currentClip()
 
 void AutomationEditorWindow::dropEvent( QDropEvent *_de )
 {
-	QString type = StringPairDrag::decodeKey( _de );
-	QString val = StringPairDrag::decodeValue( _de );
+	const auto [type, val] = DragAndDrop::getStringPair(_de);
+
 	if( type == "automatable_model" )
 	{
 		auto mod = dynamic_cast<AutomatableModel*>(Engine::projectJournal()->journallingObject(val.toInt()));
@@ -2289,7 +2289,7 @@ void AutomationEditorWindow::dragEnterEvent( QDragEnterEvent *_dee )
 	if (! m_editor->validClip() ) {
 		return;
 	}
-	StringPairDrag::processDragEnterEvent(_dee, {"automatable_model"});
+	DragAndDrop::acceptStringPair(_dee, {"automatable_model"});
 }
 
 void AutomationEditorWindow::open(AutomationClip* clip)

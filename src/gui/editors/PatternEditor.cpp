@@ -27,6 +27,7 @@
 #include <QAction>
 #include <QVBoxLayout>
 
+#include "Clipboard.h"
 #include "ClipView.h"
 #include "ComboBox.h"
 #include "DataFile.h"
@@ -35,7 +36,6 @@
 #include "PatternStore.h"
 #include "PatternTrack.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "TimeLineWidget.h"
 #include "TrackView.h"
 
@@ -147,8 +147,7 @@ void PatternEditor::loadSettings(const QDomElement& element)
 
 void PatternEditor::dropEvent(QDropEvent* de)
 {
-	QString type = StringPairDrag::decodeKey( de );
-	QString value = StringPairDrag::decodeValue( de );
+	const auto [type, value] = DragAndDrop::getStringPair(de);
 
 	if( type.left( 6 ) == "track_" )
 	{

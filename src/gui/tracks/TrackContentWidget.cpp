@@ -38,7 +38,6 @@
 #include "PatternStore.h"
 #include "Song.h"
 #include "SongEditor.h"
-#include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "ClipView.h"
 #include "TrackView.h"
@@ -350,12 +349,8 @@ bool TrackContentWidget::canPasteSelection( TimePos clipPos, const QDropEvent* d
 // Overloaded method to make it possible to call this method without a Drag&Drop event
 bool TrackContentWidget::canPasteSelection( TimePos clipPos, const QMimeData* md , bool allowSameBar )
 {
-	// For decodeKey() and decodeValue()
-	using namespace Clipboard;
-
 	Track * t = getTrack();
-	QString type = decodeKey( md );
-	QString value = decodeValue( md );
+	const auto [type, value] = MimeData::toStringPair(md);
 
 	// We can only paste into tracks of the same type
 	if (type != ("clip_" + QString::number(static_cast<int>(t->type()))))
@@ -447,17 +442,13 @@ bool TrackContentWidget::pasteSelection( TimePos clipPos, QDropEvent * de )
 // Overloaded method so we can call it without a Drag&Drop event
 bool TrackContentWidget::pasteSelection( TimePos clipPos, const QMimeData * md, bool skipSafetyCheck )
 {
-	// For decodeKey() and decodeValue()
-	using namespace Clipboard;
-
 	// When canPasteSelection was already called before, skipSafetyCheck will skip this
 	if( !skipSafetyCheck && canPasteSelection( clipPos, md ) == false )
 	{
 		return false;
 	}
 
-	QString type = decodeKey( md );
-	QString value = decodeValue( md );
+	auto [type, value] = MimeData::toStringPair(md);
 
 	getTrack()->addJournalCheckPoint();
 
