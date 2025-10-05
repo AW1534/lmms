@@ -322,15 +322,9 @@ TimePos TrackContentWidget::getPosition( int mouseX )
 void TrackContentWidget::dragEnterEvent( QDragEnterEvent * dee )
 {
 	TimePos clipPos = getPosition( dee->pos().x() );
-	if( canPasteSelection( clipPos, dee ) == false )
+	if (canPasteSelection(clipPos, dee))
 	{
-		dee->ignore();
-	}
-	else
-	{
-		StringPairDrag::processDragEnterEvent(dee, {
-			QString("clip_%1").arg(static_cast<int>(getTrack()->type()))
-		});
+		dee->acceptProposedAction();
 	}
 }
 
