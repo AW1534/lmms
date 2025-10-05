@@ -27,6 +27,7 @@
 
 #include "InstrumentTrack.h"
 #include "PathUtil.h"
+#include "SampleDecoder.h"
 #include "SampleLoader.h"
 #include "Song.h"
 
@@ -43,6 +44,10 @@ namespace lmms
 static QStringList audioFileExtensions()
 {
 	QStringList extensions;
+	for (const auto& audioType : SampleDecoder::supportedAudioTypes())
+	{
+		extensions << QString::fromStdString(audioType.extension);
+	}
 	return extensions;
 }
 
