@@ -56,6 +56,7 @@
 #include "DetuningHelper.h"
 #include "embed.h"
 #include "GuiApplication.h"
+#include "FileTypes.h"
 #include "FontHelper.h"
 #include "InstrumentTrack.h"
 #include "KeyboardShortcuts.h"
@@ -5475,8 +5476,8 @@ void PianoRollWindow::ghostClipSet( bool state )
 
 void PianoRollWindow::exportMidiClip()
 {
-	FileDialog exportDialog(this, tr("Export clip"), "",
-		tr("XML clip file (*.xpt *.xptz)"));
+	auto filter = FileTypes::compileFilter({FileType::MidiClipData}, tr("XML clip file"));
+	FileDialog exportDialog(this, tr("Export clip"), "", filter);
 
 	auto layout = dynamic_cast<QGridLayout*>(exportDialog.layout());
 	QCheckBox* onlySelectedNotesCheckBox = nullptr;
@@ -5492,10 +5493,7 @@ void PianoRollWindow::exportMidiClip()
 		!exportDialog.selectedFiles().isEmpty() &&
 		!exportDialog.selectedFiles().first().isEmpty())
 	{
-		QString suffix =
-			ConfigManager::inst()->value("app", "nommpz").toInt() == 0
-				? "xptz"
-				: "xpt";
+		QString suffix = DataFile::extension(DataFile::Type::MidiClip);
 		exportDialog.setDefaultSuffix(suffix);
 
 		const QString fullPath = exportDialog.selectedFiles()[0];
