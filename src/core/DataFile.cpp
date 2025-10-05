@@ -266,34 +266,17 @@ QString DataFile::nameWithExtension( const QString & _fn ) const
 {
 	const QString extension = _fn.section( '.', -1 );
 
-	switch( type() )
+	// SongProjects may be saved with template extension
+	if (type() == Type::SongProject && FileTypes::find(extension) == FileType::ProjectTemplate)
 	{
-		case Type::SongProject:
-			if( extension != "mmp" &&
-					extension != "mpt" &&
-					extension != "mmpz" )
-			{
-				if( ConfigManager::inst()->value( "app",
-						"nommpz" ).toInt() == 0 )
-				{
-					return _fn + ".mmpz";
-				}
-				return _fn + ".mmp";
-			}
-			break;
-		case Type::SongProjectTemplate:
-			if( extension != "mpt" )
-			{
-				return _fn + ".mpt";
-			}
-			break;
-		case Type::InstrumentTrackSettings:
-			if( extension != "xpf" )
-			{
-				return _fn + ".xpf";
-			}
-			break;
-		default: ;
+		return _fn;
+	}
+
+	// Add extension if it's missing
+	QString correctExt = DataFile::extension(type());
+	if (!correctExt.isEmpty() && extension != correctExt)
+	{
+			return _fn + "." + correctExt;
 	}
 	return _fn;
 }
@@ -405,7 +388,7 @@ bool DataFile::writeFile(const QString& filename, bool withResources)
 	}
 
 	const QString extension = fullName.section('.', -1);
-	if (extension == "mmpz" || extension == "xptz")
+	if (isCompressed(extension))
 	{
 		QString xml;
 		QTextStream ts( &xml );
@@ -2257,7 +2240,7 @@ void DataFile::loadData( const QByteArray & _data, const QString & _sourceFile )
 		 !=  openedWith.setCompareType(ProjectVersion::CompareType::Minor)
 		 && gui::getGUI() != nullptr && root.attribute("type") == "song"
 		){
-			auto projectType = _sourceFile.endsWith(".mpt") ?
+			auto projectType = QFileInfo(_sourceFile).suffix().toLower() == "mpt" ?
 				SongEditor::tr("template") : SongEditor::tr("project");
 
 			gui::TextFloat::displayMessage(
