@@ -493,9 +493,7 @@ void PatmanView::openFile()
 	FileDialog ofd( nullptr, tr( "Open patch file" ) );
 	ofd.setFileMode( FileDialog::ExistingFiles );
 
-	QStringList types;
-	types << tr( "Patch-Files (*.pat)" );
-	ofd.setNameFilters( types );
+	ofd.setNameFilter(m_pi->fileTypeFilter(tr("Patch-Files")));
 
 	if( m_pi->m_patchFile == "" )
 	{

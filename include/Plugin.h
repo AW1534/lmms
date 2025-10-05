@@ -268,6 +268,14 @@ public:
 		return m_key;
 	}
 
+	//! Construct a file type filter from supported file types, to be used by file dialogs
+	inline QString fileTypeFilter(const QString& label) const
+	{
+		// TODO this does not concider SubPluginFeatures
+		QString filter = "*." + m_descriptor->supportedFileTypes.join(" *.");
+		return label.isEmpty() ? filter : label + " (" + filter + ")";
+	}
+
 	//! Can be called if a file matching supportedFileTypes should be
 	//! loaded/processed with the help of this plugin
 	virtual void loadFile( const QString & file );
