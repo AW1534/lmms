@@ -44,6 +44,7 @@
 #include "ExportProjectDialog.h"
 #include "FileBrowser.h"
 #include "FileDialog.h"
+#include "FileTypes.h"
 #include "Metronome.h"
 #include "MixerView.h"
 #include "GuiApplication.h"
@@ -111,25 +112,31 @@ MainWindow::MainWindow() :
 	sideBar->appendTab( new PluginBrowser( splitter ) );
 	emit initProgress(tr("Preparing file browsers"));
 
-	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Favorites, ConfigManager::inst()->favoriteItems().join("*"), FileItem::defaultFilters(), "My Favorites",
+	auto defaultFilter = FileTypes::compileFilter();
+	auto presetFilter = FileTypes::compileFilter({FileType::InstrumentPreset, FileType::InstrumentAsset});
+	auto projectFilter = FileTypes::compileFilter({FileType::Project, FileType::ProjectTemplate,
+													FileType::ImportableProject});
+
+	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Favorites,
+		confMgr->favoriteItems().join("*"), defaultFilter, tr("My Favorites"),
 		embed::getIconPixmap("star").transformed(QTransform().rotate(90)), splitter, false, "", ""));
 
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal,
-		confMgr->userProjectsDir() + "*" + confMgr->factoryProjectsDir(), "*.mmp *.mmpz *.xml *.mid *.mpt",
+		confMgr->userProjectsDir() + "*" + confMgr->factoryProjectsDir(), projectFilter,
 		tr("My Projects"), embed::getIconPixmap("project_file").transformed(QTransform().rotate(90)), splitter, false,
 		confMgr->userProjectsDir(), confMgr->factoryProjectsDir()));
 
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal,
-		confMgr->userSamplesDir() + "*" + confMgr->factorySamplesDir(), FileItem::defaultFilters(), tr("My Samples"),
+		confMgr->userSamplesDir() + "*" + confMgr->factorySamplesDir(), defaultFilter, tr("My Samples"),
 		embed::getIconPixmap("sample_file").transformed(QTransform().rotate(90)), splitter, false,
 		confMgr->userSamplesDir(), confMgr->factorySamplesDir()));
 
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal,
-		confMgr->userPresetsDir() + "*" + confMgr->factoryPresetsDir(), "*.xpf *.cs.xml *.xiz *.lv2", tr("My Presets"),
+		confMgr->userPresetsDir() + "*" + confMgr->factoryPresetsDir(), presetFilter, tr("My Presets"),
 		embed::getIconPixmap("preset_file").transformed(QTransform().rotate(90)), splitter, false,
 		confMgr->userPresetsDir(), confMgr->factoryPresetsDir()));
 
-	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, QDir::homePath(), FileItem::defaultFilters(),
+	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, QDir::homePath(), defaultFilter,
 		tr("My Home"), embed::getIconPixmap("home").transformed(QTransform().rotate(90)), splitter, false));
 
 	QStringList root_paths;
@@ -152,7 +159,7 @@ MainWindow::MainWindow() :
 	}
 #endif
 
-	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, root_paths.join("*"), FileItem::defaultFilters(), title,
+	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, root_paths.join("*"), defaultFilter, title,
 		embed::getIconPixmap("computer").transformed(QTransform().rotate(90)), splitter, dirs_as_items));
 
 	m_workspace = new MovableQMdiArea(splitter);
@@ -750,9 +757,11 @@ void MainWindow::createNewProject()
 
 void MainWindow::openProject()
 {
+	const auto filter = FileTypes::compileFilter({FileType::Project, FileType::ProjectTemplate}, tr("LMMS Project"));
+
 	if( mayChangeProject(false) )
 	{
-		FileDialog ofd( this, tr( "Open Project" ), "", tr( "LMMS (*.mmp *.mmpz)" ) );
+		FileDialog ofd( this, tr( "Open Project" ), "",  filter);
 
 		ofd.setDirectory( ConfigManager::inst()->userProjectsDir() );
 		ofd.setFileMode( FileDialog::ExistingFiles );
@@ -794,10 +803,12 @@ bool MainWindow::saveProject()
 
 bool MainWindow::saveProjectAs()
 {
+	const auto projFilter = FileTypes::compileFilter({FileType::Project}, tr("LMMS Project"));
+	const auto templateFilter = FileTypes::compileFilter({FileType::ProjectTemplate}, tr("LMMS Project Template"));
+
 	auto optionsWidget = new SaveOptionsWidget(Engine::getSong()->getSaveOptions());
-	VersionedSaveDialog sfd( this, optionsWidget, tr( "Save Project" ), "",
-			tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
-				tr( "LMMS Project Template" ) + " (*.mpt)" );
+	VersionedSaveDialog sfd( this, optionsWidget, tr( "Save Project" ), "", projFilter + ";;" + templateFilter);
+
 	QString f = Engine::getSong()->projectFileName();
 	if( f != "" )
 	{
@@ -810,10 +821,7 @@ bool MainWindow::saveProjectAs()
 	}
 
 	// Don't write over file with suffix if no suffix is provided.
-	QString suffix = ConfigManager::inst()->value( "app",
-							"nommpz" ).toInt() == 0
-						? "mmpz"
-						: "mmp" ;
+	QString suffix = DataFile::extension(DataFile::Type::SongProject);
 	sfd.setDefaultSuffix( suffix );
 
 	if( sfd.exec () == FileDialog::Accepted &&
@@ -1577,14 +1585,11 @@ void MainWindow::onImportProject()
 
 	if (song)
 	{
+		const auto filter = FileTypes::compileFilter({FileType::ImportableProject});
+
 		FileDialog ofd( nullptr, tr( "Import file" ),
 				ConfigManager::inst()->userProjectsDir(),
-				tr("MIDI sequences") +
-				" (*.mid *.midi *.rmi);;" +
-				tr("Hydrogen projects") +
-				" (*.h2song);;" +
-				tr("All file types") +
-				" (*.*)");
+				 filter);
 
 		ofd.setFileMode( FileDialog::ExistingFiles );
 		if( ofd.exec () == QDialog::Accepted && !ofd.selectedFiles().isEmpty() )
