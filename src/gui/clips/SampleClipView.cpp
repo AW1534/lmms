@@ -107,6 +107,20 @@ void SampleClipView::constructContextMenu(QMenu* cm)
 
 
 
+QMimeData* SampleClipView::createClipboardData()
+{
+	auto mimeData = ClipView::createClipboardData();
+
+	// Add sample path to drag-and-drop objects so they can be dragged into other apps
+	const auto path = PathUtil::toAbsolute(m_clip->sampleFile());
+	mimeData->setUrls({QUrl::fromLocalFile(path)});
+
+	return mimeData;
+}
+
+
+
+
 void SampleClipView::dragEnterEvent(QDragEnterEvent* _dee)
 {
 	if (DragAndDrop::acceptStringPair(_dee, {"sampledata"})) { return; }

@@ -62,6 +62,8 @@ protected:
 	void mouseDoubleClickEvent( QMouseEvent * ) override;
 	void paintEvent( QPaintEvent * ) override;
 
+	QMimeData* createClipboardData() override;
+
 
 private:
 	SampleClip * m_clip;
