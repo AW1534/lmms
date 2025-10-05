@@ -25,6 +25,8 @@
 
 #include "VstEffect.h"
 
+#include <QFileInfo>
+
 #include "GuiApplication.h"
 #include "Song.h"
 #include "TextFloat.h"
@@ -70,8 +72,7 @@ VstEffect::VstEffect( Model * _parent,
 	{
 		loaded = openPlugin(m_key.attributes["file"]);
 	}
-	setDisplayName( m_key.attributes["file"].section( ".dll", 0, 0 ).isEmpty()
-		? m_key.name : m_key.attributes["file"].section( ".dll", 0, 0 ) );
+	setDisplayName(QFileInfo(m_key.attributes["file"]).completeBaseName());
 
 	setDontRun(!loaded);
 }
