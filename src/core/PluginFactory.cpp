@@ -129,6 +129,13 @@ PluginFactory::PluginInfoAndKey PluginFactory::pluginSupportingExtension(const Q
 	return m_pluginByExt.value(ext, PluginInfoAndKey());
 }
 
+
+QStringList PluginFactory::allSupportedExtensions()
+{
+	return QStringList(m_pluginByExt.keys());
+}
+
+
 PluginFactory::PluginInfo PluginFactory::pluginInfo(const char* name) const
 {
 	for (const PluginInfo& info : m_pluginInfos)

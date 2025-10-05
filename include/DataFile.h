@@ -30,6 +30,7 @@
 #include <QDomDocument>
 #include <vector>
 
+#include "FileTypes.h"
 #include "lmms_export.h"
 
 class QTextStream;
@@ -72,6 +73,9 @@ public:
 	bool validate( QString extension );
 
 	QString nameWithExtension( const QString& fn ) const;
+
+	static QString extension(Type type);
+	static std::vector<std::pair<FileType, QString>> allSupportedFileTypes();
 
 	void write( QTextStream& strm );
 	bool writeFile(const QString& fn, bool withResources = false);

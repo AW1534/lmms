@@ -105,19 +105,25 @@ namespace
 	{
 		DataFile::Type m_type;
 		QString m_name;
+		std::vector<QString> m_extensions = {};
 	};
 
 	const auto s_types = std::array{
 		TypeDescStruct{ DataFile::Type::Unknown, "unknown" },
-		TypeDescStruct{ DataFile::Type::SongProject, "song" },
-		TypeDescStruct{ DataFile::Type::SongProjectTemplate, "songtemplate" },
-		TypeDescStruct{ DataFile::Type::InstrumentTrackSettings, "instrumenttracksettings" },
+		TypeDescStruct{ DataFile::Type::SongProject, "song" , {"mmp", "mmpz"}},
+		TypeDescStruct{ DataFile::Type::SongProjectTemplate, "songtemplate", {"mpt"}},
+		TypeDescStruct{ DataFile::Type::InstrumentTrackSettings, "instrumenttracksettings", {"xpf", "xml"}},
 		TypeDescStruct{ DataFile::Type::DragNDropData, "dnddata" },
 		TypeDescStruct{ DataFile::Type::ClipboardData, "clipboard-data" },
 		TypeDescStruct{ DataFile::Type::JournalData, "journaldata" },
 		TypeDescStruct{ DataFile::Type::EffectSettings, "effectsettings" },
-		TypeDescStruct{ DataFile::Type::MidiClip, "midiclip" }
+		TypeDescStruct{ DataFile::Type::MidiClip, "midiclip", {"xpt", "xptz"}},
 	};
+
+	bool isCompressed(const QString& ext)
+	{
+		return ext == "mmpz" || ext == "xptz";
+	}
 }
 
 
@@ -619,6 +625,74 @@ DataFile::Type DataFile::type( const QString& typeName )
 QString DataFile::typeName( Type type )
 {
 	return s_types[static_cast<std::size_t>(type)].m_name;
+}
+
+
+
+
+QString DataFile::extension(Type type)
+{
+	bool wantCompressed = ConfigManager::inst()->value("app", "nommpz" ).toInt() == 0;
+
+	QString firstMatch;
+	for (const auto& desc : s_types)
+	{
+		if (desc.m_type == type)
+		{
+			for (const auto& ext: desc.m_extensions)
+			{
+				// In case there's a suffix that matches the user setting for compressed files, use that
+				// Otherwise use the first suffix in the list
+				if (isCompressed(ext) == wantCompressed)
+				{
+					return ext;
+				}
+				else if (firstMatch.isEmpty())
+				{
+					firstMatch = ext;
+				}
+			}
+
+		}
+	}
+	return firstMatch;
+}
+
+
+
+
+std::vector<std::pair<FileType, QString>> DataFile::allSupportedFileTypes()
+{
+	std::vector<std::pair<FileType, QString>> result;
+
+	for (const auto& desc : s_types)
+	{
+		// Convert the DataFile::Type to a more generic FileType
+		auto type = FileType::Unknown;
+		switch (desc.m_type)
+		{
+		case Type::SongProject:
+			type = FileType::Project;
+			break;
+		case Type::SongProjectTemplate:
+			type = FileType::ProjectTemplate;
+			break;
+		case Type::InstrumentTrackSettings:
+			type = FileType::InstrumentPreset;
+			break;
+		case Type::MidiClip:
+			type = FileType::MidiClipData;
+			break;
+		default:
+			continue;
+		}
+
+		for (const auto& ext: desc.m_extensions)
+		{
+			result.push_back({type, ext});
+		}
+	}
+	return result;
 }
 
 
