@@ -31,10 +31,13 @@
 
 #include "ModelView.h"
 #include "Rubberband.h"
+#include "Track.h"
 #include "Clip.h"
 
 
 class QMenu;
+class QMimeData;
+
 
 namespace lmms
 {
@@ -130,6 +133,12 @@ public:
 	void inline setMarkerPos(int x) { m_markerPos = x; }
 	void inline setMarkerEnabled(bool e) { m_marker = e; }
 
+	//! Clip type used in a StringPairDrag (drag-and-drop or copy)
+	QString clipTypeString() const
+	{
+		return QString("clip_%1").arg(static_cast<int>(m_clip->getTrack()->type()));
+	}
+
 public slots:
 	virtual bool close();
 	void remove();
@@ -178,8 +187,9 @@ protected:
 
 	float pixelsPerBar();
 
-
+	//! Turn a selection of clips into a DataFile used for drag-and-drop or copy
 	DataFile createClipDataFiles(const QVector<ClipView *> & clips) const;
+	virtual QMimeData* createClipboardData();
 
 	virtual void paintTextLabel(QString const & text, QPainter & painter);
 

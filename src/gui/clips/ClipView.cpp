@@ -421,15 +421,9 @@ void ClipView::dragEnterEvent( QDragEnterEvent * dee )
 	TrackContentWidget * tcw = getTrackView()->getTrackContentWidget();
 	TimePos clipPos{m_clip->startPosition()};
 
-	if( tcw->canPasteSelection( clipPos, dee ) == false )
+	if (tcw->canPasteSelection(clipPos, dee))
 	{
-		dee->ignore();
-	}
-	else
-	{
-		StringPairDrag::processDragEnterEvent(dee, {
-			QString("clip_%1").arg(static_cast<int>(m_clip->getTrack()->type()))
-		});
+		dee->acceptProposedAction();
 	}
 }
 
@@ -450,7 +444,7 @@ void ClipView::dropEvent(QDropEvent* de)
 	const auto [type, value] = Clipboard::decodeMimeData(de->mimeData());
 
 	// Track must be the same type to paste into
-	if( type != ( "clip_" + QString::number( static_cast<int>(m_clip->getTrack()->type()) ) ) )
+	if (type != clipTypeString())
 	{
 		de->ignore();
 		return;
@@ -511,6 +505,17 @@ void ClipView::updateCursor(QMouseEvent * me)
 	}
 	// If we are in the middle in any other mode, use the hand cursor
 	else { setCursor(m_cursorHand); }
+}
+
+
+
+
+QMimeData* ClipView::createClipboardData()
+{
+	 // Write the Clips to the DataFile for copying
+	DataFile dataFile = createClipDataFiles(getClickedClips());
+
+	return MimeData::fromStringPair(clipTypeString(), dataFile.toString());;
 }
 
 
