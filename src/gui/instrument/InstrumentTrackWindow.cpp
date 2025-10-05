@@ -42,6 +42,7 @@
 #include "Engine.h"
 #include "FileBrowser.h"
 #include "FileDialog.h"
+#include "FileTypes.h"
 #include "GroupBox.h"
 #include "MixerChannelLcdSpinBox.h"
 #include "GuiApplication.h"
@@ -417,7 +418,9 @@ void InstrumentTrackWindow::modelChanged()
 
 void InstrumentTrackWindow::saveSettingsBtnClicked()
 {
-	FileDialog sfd(this, tr("Save preset"), "", tr("XML preset file (*.xpf)"));
+	const auto filter = FileTypes::compileFilter({FileType::InstrumentPreset}, tr("XML preset file"));
+
+	FileDialog sfd(this, tr("Save preset"), "", filter);
 
 	QString presetRoot = ConfigManager::inst()->userPresetsDir();
 	if(!QDir(presetRoot).exists())
