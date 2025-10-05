@@ -39,7 +39,6 @@
 #include "PathUtil.h"
 #include "PixmapButton.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "Clipboard.h"
 
 #include "embed.h"

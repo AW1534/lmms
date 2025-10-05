@@ -37,7 +37,6 @@
 #include "PixmapButton.h"
 #include "SampleLoader.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "Track.h"
 
 namespace lmms

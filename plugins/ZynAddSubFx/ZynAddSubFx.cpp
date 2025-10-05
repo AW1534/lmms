@@ -42,7 +42,6 @@
 #include "InstrumentPlayHandle.h"
 #include "InstrumentTrack.h"
 #include "Song.h"
-#include "StringPairDrag.h"
 #include "RemoteZynAddSubFx.h"
 #include "LocalZynAddSubFx.h"
 #include "AudioEngine.h"

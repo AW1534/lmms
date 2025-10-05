@@ -35,7 +35,6 @@
 #include "InstrumentPlayHandle.h"
 #include "InstrumentTrack.h"
 #include "Lv2SubPluginFeatures.h"
-#include "StringPairDrag.h"
 #include "embed.h"
 #include "plugin_export.h"
 
