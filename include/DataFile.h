@@ -53,11 +53,11 @@ public:
 		SongProject,
 		SongProjectTemplate,
 		InstrumentTrackSettings,
-		DragNDropData,
-		ClipboardData,
+		DragNDropData, //!< list of Clips for SongEditor clipboard
+		ClipboardData, //!< list of Notes for PianoRoll clipboard
 		JournalData,
 		EffectSettings,
-		MidiClip
+		MidiClip //!< XML exported from PianoRoll
 	} ;
 
 	DataFile( const QString& fileName );
@@ -65,12 +65,6 @@ public:
 	DataFile( Type type );
 
 	virtual ~DataFile() = default;
-
-	///
-	/// \brief validate
-	/// performs basic validation, compared to file extension.
-	///
-	bool validate( QString extension );
 
 	QString nameWithExtension( const QString& fn ) const;
 

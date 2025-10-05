@@ -199,69 +199,6 @@ DataFile::DataFile( const QByteArray & _data ) :
 
 
 
-
-bool DataFile::validate( QString extension )
-{
-	switch( m_type )
-	{
-	case Type::SongProject:
-		if( extension == "mmp" || extension == "mmpz" )
-		{
-			return true;
-		}
-		break;
-	case Type::SongProjectTemplate:
-		if(  extension == "mpt" )
-		{
-			return true;
-		}
-		break;
-	case Type::InstrumentTrackSettings:
-		if ( extension == "xpf" || extension == "xml" )
-		{
-			return true;
-		}
-		break;
-	case Type::MidiClip:
-		if (extension == "xpt" || extension == "xptz")
-		{
-			return true;
-		}
-		break;
-	case Type::Unknown:
-		if (! ( extension == "mmp" || extension == "mpt" || extension == "mmpz" ||
-				extension == "xpf" || extension == "xml" ||
-				( extension == "xiz" && ! getPluginFactory()->pluginSupportingExtension(extension).isNull()) ||
-				extension == "sf2" || extension == "sf3" || extension == "pat" || extension == "mid" ||
-				extension == "dll"
-#ifdef LMMS_BUILD_LINUX
-				|| extension == "so"
-#endif
-#ifdef LMMS_HAVE_LV2
-				|| extension == "lv2"
-#endif
-				) )
-		{
-			return true;
-		}
-		if( extension == "wav" || extension == "ogg" || extension == "ds"
-#ifdef LMMS_HAVE_SNDFILE_MP3
-				|| extension == "mp3"
-#endif
-				)
-		{
-			return true;
-		}
-		break;
-	default:
-		return false;
-	}
-	return false;
-}
-
-
-
-
 QString DataFile::nameWithExtension( const QString & _fn ) const
 {
 	const QString extension = _fn.section( '.', -1 );
